@@ -30,29 +30,26 @@ app.post('/analyze-entry', async (req, res) => {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" }); // Using the flash-lite model as discussed
 
-    const prompt = `Analyze the following journal entry. Based on the text, provide a JSON response with the following keys:
-1.  "activities": A brief summary of what the user did.
-2.  "achievements": Any accomplishments mentioned.
-3.  "happyMoments": Things that made the user happy.
-4.  "sadMoments": Things that made the user sad or frustrated.
-5.  "improvementSuggestions": Constructive suggestions on how the user might overcome any sadness or enhance their happiness, based on the entry.
-6.  "personalInsights": Any personal reflections or discoveries about the user drawn from the text.
-7.  "overallMood": A short, descriptive assessment of the user's overall mood (e.g., "Positive and Reflective", "Slightly Down but Hopeful", "Mixed Emotions"). Do not use a numerical score.
+    const prompt = `Analyze the following journal entry. Respond ONLY with a valid JSON object.
+The JSON object should have the following keys:
+- "keySentimentSummary": A 1-2 sentence concise summary of the dominant feeling(s) expressed in the entry.
+- "dominantThemes": An array of 2-3 main topics or areas the entry focused on (e.g., ["Work projects", "Weekend plans", "Personal challenge"]).
+- "highlight": A specific positive moment, a small win, or a key insightful sentence extracted directly from the text.
+- "reflectivePrompt": A single reflective question for the user to consider later, based specifically on the content of the entry.
+- "simpleScore": A single number score on a scale of -5 (very negative) to +5 (very positive), representing the overall sentiment.
 
 Journal Entry:
 ---
 ${entryContent}
 ---
 
-Respond ONLY with a valid JSON object. For example:
+Example of the expected JSON output format:
 {
-  "activities": "Went for a walk, worked on a project.",
-  "achievements": "Finished a difficult task.",
-  "happyMoments": "Enjoyed the sunshine during the walk.",
-  "sadMoments": "Felt stressed about a deadline.",
-  "improvementSuggestions": "Consider breaking down large tasks to manage stress.",
-  "personalInsights": "Realized that spending time outdoors improves mood.",
-  "overallMood": "Productive but a bit stressed"
+  "keySentimentSummary": "The entry reflects a sense of accomplishment and relief after completing a difficult project, though there's also a feeling of tiredness.",
+  "dominantThemes": ["Project completion", "Work stress", "Need for rest"],
+  "highlight": "Finally finished the report I\'ve been dreading all week!",
+  "reflectivePrompt": "How can you ensure you get adequate rest this weekend to recharge?",
+  "simpleScore": 3
 }
 `;
 
