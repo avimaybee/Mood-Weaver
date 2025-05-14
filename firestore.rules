@@ -1,0 +1,28 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Match any document in the 'users' collection
+    match /users/{userId} {
+      // Allow a user to read and write their own user document (if you ever create one)
+      // For this app, we are primarily concerned with the 'entries' subcollection.
+      // allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Match any document in the 'entries' subcollection of a user's document
+      match /entries/{entryId} {
+        // Allow read, create, update, and delete operations if the user is authenticated
+        // and their UID matches the {userId} in the path.
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        // More granular permissions:
+        // allow create: if request.auth != null && request.auth.uid == userId;
+        // allow read: if request.auth != null && request.auth.uid == userId;
+        // allow update: if request.auth != null && request.auth.uid == userId;
+        // allow delete: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // It's good practice to deny all other access by default if not explicitly allowed.
+    // However, for this simple app, the above rule is the primary focus.
+    // Consider adding more restrictive rules for other paths if your app grows.
+  }
+} 
