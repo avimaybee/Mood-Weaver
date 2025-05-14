@@ -251,27 +251,78 @@ journalForm.addEventListener('submit', (e) => {
         return;
     }
 
-    // Calculate mood score client-side
+    // Calculate mood score client-side (can still be useful for quick display or fallback)
     const moodScore = calculateMoodScore(entryText);
 
     const entryObject = {
         userId: currentUser.uid,
         content: entryText,
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        moodScore: moodScore // Use the calculated score
+        moodScore: moodScore, // Store the client-calculated score
+        aiAnalysis: null // Placeholder for AI analysis, to be updated
     };
+
+    let newEntryRef;
 
     // Save to user's specific entries subcollection
     db.collection('users').doc(currentUser.uid).collection('entries').add(entryObject)
         .then((docRef) => {
+            newEntryRef = docRef; // Store the document reference
             console.log('Entry saved with ID:', docRef.id);
             journalEntryInput.value = ''; // Clear the textarea
-            entrySuccessMessage.textContent = 'Entry saved!';
-            setTimeout(() => { entrySuccessMessage.textContent = ''; }, 3000); // Clear message after 3s
+            entrySuccessMessage.textContent = 'Entry saved! Analyzing with AI...';
+            // Now call the AI backend for the new entry
+            return fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ entryContent: entryText })
+            });
+        })
+        .then(response => {
+            if (!response.ok) {
+                // If backend returns an error, log it but don't block UI too much
+                // The entry is saved, AI analysis just failed for now
+                response.json().then(errData => {
+                    console.error('AI analysis error from backend:', errData);
+                    entrySuccessMessage.textContent = 'Entry saved. AI analysis failed.';
+                }).catch(() => {
+                    console.error('AI analysis error from backend (non-JSON response):', response.status);
+                    entrySuccessMessage.textContent = 'Entry saved. AI analysis failed (server error).';
+                });
+                return null; // Indicate AI analysis failed for now
+            }
+            return response.json();
+        })
+        .then(aiData => {
+            if (aiData && newEntryRef) {
+                if (aiData.error) {
+                    console.warn('AI Analysis returned an error object:', aiData.error);
+                    entrySuccessMessage.textContent = `Entry saved. AI analysis issue: ${aiData.error}`;
+                    // Optionally, save the error state to Firestore
+                    return newEntryRef.update({ 
+                        aiAnalysis: { error: aiData.error, details: aiData.details || 'No details' } 
+                    });
+                } else {
+                    console.log('AI Analysis successful:', aiData);
+                    entrySuccessMessage.textContent = 'Entry saved and AI analysis complete!';
+                    // Update the Firestore document with the AI analysis results
+                    return newEntryRef.update({ aiAnalysis: aiData });
+                }
+            } else if (!aiData && newEntryRef) {
+                // This case might occur if the backend response was not ok and returned null earlier.
+                // The error was already logged.
+            }
         })
         .catch((error) => {
-            console.error('Error saving entry:', error);
-            alert('Failed to save entry. Please try again.');
+            console.error('Error saving entry or during AI analysis fetch:', error);
+            entrySuccessMessage.textContent = 'Failed to save entry or AI analysis error.';
+            // alert('Failed to save entry or AI analysis error. Please try again.');
+        })
+        .finally(() => {
+            // Clear the success/error message after some time
+            setTimeout(() => { entrySuccessMessage.textContent = ''; }, 5000);
         });
 });
 
@@ -310,79 +361,53 @@ function loadJournalEntries() {
 
             const timestampSpan = document.createElement('span');
             timestampSpan.classList.add('timestamp');
-            // Handle potential null timestamp briefly during creation
             timestampSpan.textContent = entry.timestamp ? entry.timestamp.toDate().toLocaleString() : 'Saving...';
-
-            const moodScoreSpan = document.createElement('span');
-            moodScoreSpan.classList.add('mood-score');
-            moodScoreSpan.textContent = `Score: ${entry.moodScore === null || entry.moodScore === undefined ? 'Calculating...' : entry.moodScore}`;
 
             entryDiv.appendChild(contentP);
             entryDiv.appendChild(timestampSpan);
-            entryDiv.appendChild(document.createElement('br')); // Line break for clarity
-            entryDiv.appendChild(moodScoreSpan);
+            entryDiv.appendChild(document.createElement('br'));
 
-            // Add a div to display AI insights
+            // Display Client-Side Mood Score (optional, can be removed if AI score is preferred)
+            const moodScoreSpan = document.createElement('span');
+            moodScoreSpan.classList.add('mood-score');
+            moodScoreSpan.textContent = `Initial Score: ${entry.moodScore === null || entry.moodScore === undefined ? 'N/A' : entry.moodScore}`;
+            entryDiv.appendChild(moodScoreSpan);
+            entryDiv.appendChild(document.createElement('br'));
+
+            // Display AI Analysis from Firestore
             const aiInsightsDiv = document.createElement('div');
             aiInsightsDiv.classList.add('ai-insights');
-            aiInsightsDiv.innerHTML = '<p>Loading AI analysis...</p>'; // Initial loading state
-            entryDiv.appendChild(aiInsightsDiv);
 
-            entriesList.appendChild(entryDiv);
-
-            // Fetch AI insights from the DEPLOYED local backend
-            fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ entryContent: entry.content })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(aiData => {
-                // Display the AI insights
-                aiInsightsDiv.innerHTML = ''; // Clear loading message
-                if (aiData.error) {
-                    aiInsightsDiv.innerHTML = `<p>Error: ${aiData.error}</p>`;
-                    if (aiData.details) {
-                         aiInsightsDiv.innerHTML += `<p>Details: ${aiData.details}</p>`;
-                    }
+            if (entry.aiAnalysis) {
+                if (entry.aiAnalysis.error) {
+                    aiInsightsDiv.innerHTML = `<p><strong>AI Analysis:</strong> Error - ${entry.aiAnalysis.error}</p>`;
                 } else {
-                    // Format and display the insights
                     let insightsHtml = '<p><strong>AI Insights:</strong></p>';
-                    if (aiData.overallMood) {
-                        insightsHtml += `<p>Overall Mood: ${aiData.overallMood}</p>`;
+                    if (entry.aiAnalysis.keySentimentSummary) {
+                        insightsHtml += `<p>Summary: ${entry.aiAnalysis.keySentimentSummary}</p>`;
                     }
-                    if (aiData.activities) {
-                        insightsHtml += `<p>Activities: ${aiData.activities}</p>`;
+                    if (entry.aiAnalysis.dominantThemes && entry.aiAnalysis.dominantThemes.length > 0) {
+                        insightsHtml += `<p>Themes: ${entry.aiAnalysis.dominantThemes.join(', ')}</p>`;
                     }
-                    if (aiData.achievements) {
-                        insightsHtml += `<p>Achievements: ${aiData.achievements}</p>`;
+                    if (entry.aiAnalysis.highlight) {
+                        insightsHtml += `<p>Highlight: \"${entry.aiAnalysis.highlight}\"</p>`;
                     }
-                    if (aiData.happyMoments) {
-                        insightsHtml += `<p>Happy Moments: ${aiData.happyMoments}</p>`;
+                    if (entry.aiAnalysis.reflectivePrompt) {
+                        insightsHtml += `<p>To Consider: ${entry.aiAnalysis.reflectivePrompt}</p>`;
                     }
-                     if (aiData.sadMoments) {
-                        insightsHtml += `<p>Sad Moments: ${aiData.sadMoments}</p>`;
-                    }
-                     if (aiData.improvementSuggestions) {
-                        insightsHtml += `<p>Suggestions: ${aiData.improvementSuggestions}</p>`;
-                    }
-                     if (aiData.personalInsights) {
-                        insightsHtml += `<p>Personal Insights: ${aiData.personalInsights}</p>`;
+                    if (entry.aiAnalysis.simpleScore !== null && entry.aiAnalysis.simpleScore !== undefined) {
+                        insightsHtml += `<p>AI Score: ${entry.aiAnalysis.simpleScore}</p>`;
                     }
                     aiInsightsDiv.innerHTML = insightsHtml;
                 }
-            })
-            .catch(error => {
-                console.error('Error fetching AI analysis:', error);
-                aiInsightsDiv.innerHTML = '<p>Error fetching AI analysis. Ensure the local backend is running.</p>';
-            });
+            } else if (entry.timestamp) { // Only show this if it's not a brand new entry still processing
+                aiInsightsDiv.innerHTML = '<p>AI analysis not yet available or not applicable for this entry.</p>';
+            } else {
+                 aiInsightsDiv.innerHTML = '<p>Processing AI analysis...</p>'; // For brand new entries before AI data is back
+            }
+            entryDiv.appendChild(aiInsightsDiv);
+
+            entriesList.appendChild(entryDiv);
         });
     }, error => {
         console.error('Error fetching entries:', error);
