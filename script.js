@@ -239,7 +239,8 @@ if (auth.currentUser) {
 journalForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const entryText = journalEntryInput.value.trim();
-    entrySuccessMessage.textContent = ''; // Clear previous message
+    entrySuccessMessage.textContent = ''; 
+    const saveButton = journalForm.querySelector('button[type="submit"]'); // Get the save button
 
     if (!entryText) {
         alert('Please write something in your entry.');
@@ -251,27 +252,25 @@ journalForm.addEventListener('submit', (e) => {
         return;
     }
 
-    // Calculate mood score client-side (can still be useful for quick display or fallback)
-    const moodScore = calculateMoodScore(entryText);
+    saveButton.disabled = true; // Disable button
+    entrySuccessMessage.textContent = 'Saving entry...';
 
+    const moodScore = calculateMoodScore(entryText);
     const entryObject = {
         userId: currentUser.uid,
         content: entryText,
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        moodScore: moodScore, // Store the client-calculated score
-        aiAnalysis: null // Placeholder for AI analysis, to be updated
+        moodScore: moodScore,
+        aiAnalysis: null 
     };
-
     let newEntryRef;
 
-    // Save to user's specific entries subcollection
     db.collection('users').doc(currentUser.uid).collection('entries').add(entryObject)
         .then((docRef) => {
-            newEntryRef = docRef; // Store the document reference
+            newEntryRef = docRef;
             console.log('Entry saved with ID:', docRef.id);
-            journalEntryInput.value = ''; // Clear the textarea
+            journalEntryInput.value = ''; 
             entrySuccessMessage.textContent = 'Entry saved! Analyzing with AI...';
-            // Now call the AI backend for the new entry
             return fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
                 method: 'POST',
                 headers: {
@@ -282,8 +281,6 @@ journalForm.addEventListener('submit', (e) => {
         })
         .then(response => {
             if (!response.ok) {
-                // If backend returns an error, log it but don't block UI too much
-                // The entry is saved, AI analysis just failed for now
                 response.json().then(errData => {
                     console.error('AI analysis error from backend:', errData);
                     entrySuccessMessage.textContent = 'Entry saved. AI analysis failed.';
@@ -291,7 +288,7 @@ journalForm.addEventListener('submit', (e) => {
                     console.error('AI analysis error from backend (non-JSON response):', response.status);
                     entrySuccessMessage.textContent = 'Entry saved. AI analysis failed (server error).';
                 });
-                return null; // Indicate AI analysis failed for now
+                return null; 
             }
             return response.json();
         })
@@ -300,28 +297,22 @@ journalForm.addEventListener('submit', (e) => {
                 if (aiData.error) {
                     console.warn('AI Analysis returned an error object:', aiData.error);
                     entrySuccessMessage.textContent = `Entry saved. AI analysis issue: ${aiData.error}`;
-                    // Optionally, save the error state to Firestore
                     return newEntryRef.update({ 
                         aiAnalysis: { error: aiData.error, details: aiData.details || 'No details' } 
                     });
                 } else {
                     console.log('AI Analysis successful:', aiData);
                     entrySuccessMessage.textContent = 'Entry saved and AI analysis complete!';
-                    // Update the Firestore document with the AI analysis results
                     return newEntryRef.update({ aiAnalysis: aiData });
                 }
-            } else if (!aiData && newEntryRef) {
-                // This case might occur if the backend response was not ok and returned null earlier.
-                // The error was already logged.
-            }
+            } 
         })
         .catch((error) => {
             console.error('Error saving entry or during AI analysis fetch:', error);
             entrySuccessMessage.textContent = 'Failed to save entry or AI analysis error.';
-            // alert('Failed to save entry or AI analysis error. Please try again.');
         })
         .finally(() => {
-            // Clear the success/error message after some time
+            saveButton.disabled = false; // Re-enable button
             setTimeout(() => { entrySuccessMessage.textContent = ''; }, 5000);
         });
 });
