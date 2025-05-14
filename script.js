@@ -322,7 +322,67 @@ function loadJournalEntries() {
             entryDiv.appendChild(document.createElement('br')); // Line break for clarity
             entryDiv.appendChild(moodScoreSpan);
 
+            // Add a div to display AI insights
+            const aiInsightsDiv = document.createElement('div');
+            aiInsightsDiv.classList.add('ai-insights');
+            aiInsightsDiv.innerHTML = '<p>Loading AI analysis...</p>'; // Initial loading state
+            entryDiv.appendChild(aiInsightsDiv);
+
             entriesList.appendChild(entryDiv);
+
+            // Fetch AI insights from the DEPLOYED local backend
+            fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ entryContent: entry.content })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(aiData => {
+                // Display the AI insights
+                aiInsightsDiv.innerHTML = ''; // Clear loading message
+                if (aiData.error) {
+                    aiInsightsDiv.innerHTML = `<p>Error: ${aiData.error}</p>`;
+                    if (aiData.details) {
+                         aiInsightsDiv.innerHTML += `<p>Details: ${aiData.details}</p>`;
+                    }
+                } else {
+                    // Format and display the insights
+                    let insightsHtml = '<p><strong>AI Insights:</strong></p>';
+                    if (aiData.overallMood) {
+                        insightsHtml += `<p>Overall Mood: ${aiData.overallMood}</p>`;
+                    }
+                    if (aiData.activities) {
+                        insightsHtml += `<p>Activities: ${aiData.activities}</p>`;
+                    }
+                    if (aiData.achievements) {
+                        insightsHtml += `<p>Achievements: ${aiData.achievements}</p>`;
+                    }
+                    if (aiData.happyMoments) {
+                        insightsHtml += `<p>Happy Moments: ${aiData.happyMoments}</p>`;
+                    }
+                     if (aiData.sadMoments) {
+                        insightsHtml += `<p>Sad Moments: ${aiData.sadMoments}</p>`;
+                    }
+                     if (aiData.improvementSuggestions) {
+                        insightsHtml += `<p>Suggestions: ${aiData.improvementSuggestions}</p>`;
+                    }
+                     if (aiData.personalInsights) {
+                        insightsHtml += `<p>Personal Insights: ${aiData.personalInsights}</p>`;
+                    }
+                    aiInsightsDiv.innerHTML = insightsHtml;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching AI analysis:', error);
+                aiInsightsDiv.innerHTML = '<p>Error fetching AI analysis. Ensure the local backend is running.</p>';
+            });
         });
     }, error => {
         console.error('Error fetching entries:', error);
