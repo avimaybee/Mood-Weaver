@@ -1,469 +1,334 @@
+:root {
+    --font-primary: 'Inter', sans-serif;
+    --color-background: #F7E1D7; /* Light Peach/Off-White */
+    --color-text-primary: #4A5759; /* Dark Slate Gray/Blue */
+    --color-text-secondary: #5c6b6e; /* Slightly lighter than primary for less emphasis */
+    --color-container-background: #FFFFFF; /* White for main content areas */
+    --color-primary-accent: #B0C4B1; /* Muted Green/Sage */
+    --color-primary-accent-hover: #9cb69d; /* Darker Sage for hover */
+    --color-secondary-accent: #EDAFB8; /* Soft Pink */
+    --color-secondary-accent-hover: #e09da6; /* Darker Pink for hover */
+    --color-border: #DEDBD2; /* Light Grayish Beige */
+    --color-error: #d9534f; /* Keep a distinct error color */
+    --color-success: #5cb85c; /* Keep a distinct success color */
+    --color-link: var(--color-primary-accent);
+    --color-link-hover: var(--color-primary-accent-hover);
+    --shadow-color: rgba(74, 87, 89, 0.1); /* Derived from Dark Slate Gray/Blue */
+}
+
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-primary);
+    font-size: 17px; /* Increased base font size */
     margin: 0;
     padding: 20px;
-    background-color: #f7f8fc; /* Slightly lighter, more modern background */
-    color: #2D3748; /* Darker gray for better contrast - A Kasaei Stone */
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
     display: flex;
     justify-content: center;
     align-items: flex-start; /* Align items to the start for longer content */
     min-height: 100vh;
-    font-size: 16px; /* Base font size */
-    line-height: 1.6; /* Base line height for readability */
 }
 
 #app {
-    background-color: #fff;
-    padding: 30px; /* Increased padding */
-    border-radius: 12px; /* More rounded corners */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Softer, more modern shadow */
+    background-color: var(--color-container-background);
+    padding: 25px; /* Slightly increased padding */
+    border-radius: 12px; /* Softer radius */
+    box-shadow: 0 4px 15px var(--shadow-color); /* Softer shadow */
     width: 100%;
     max-width: 650px; /* Slightly wider */
 }
 
-h2, h3 {
-    color: #1A202C; /* Even darker for headings - A Kasaei Coal */
+h1, h2, h3 { /* Added h1 for completeness */
+    color: var(--color-text-primary);
     text-align: center;
-    font-weight: 600; /* Using Inter's medium/semibold weight */
+    font-weight: 600; /* Medium weight for headings */
+}
+
+h1 {
+    margin-bottom: 20px;
+    font-size: 2em;
 }
 
 h2 {
-    font-size: 1.75em; /* 28px */
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    font-size: 1.6em;
 }
 
-h3 {
-    font-size: 1.375em; /* 22px */
-    margin-top: 30px; /* More space above h3 */
+h3.entry-ai-title { /* Specific styling for AI title moved from later */
+    margin-top: 0;
     margin-bottom: 15px;
+    font-size: 1.4em;
+    color: var(--color-text-primary);
+    font-weight: 500; /* Slightly less than main headings */
 }
 
 input[type="email"],
 input[type="password"],
 textarea {
-    width: calc(100% - 22px); 
-    padding: 12px 10px; /* Increased padding */
-    margin-bottom: 15px; /* Increased margin */
-    border: 1px solid #CBD5E0; /* Softer border color - A Kasaei Mist */
-    border-radius: 6px; /* Slightly more rounded */
+    width: calc(100% - 22px);
+    padding: 12px; /* Increased padding */
+    margin-bottom: 12px; /* Adjusted margin */
+    border: 1px solid var(--color-border);
+    border-radius: 6px; /* Softer radius */
     box-sizing: border-box;
-    font-family: 'Inter', sans-serif; /* Ensure font inheritance */
-    font-size: 0.9375em; /* 15px */
-    line-height: 1.5;
-}
-
-textarea {
-    min-height: 100px; /* Ensure textarea has a decent default height */
+    font-family: var(--font-primary);
+    color: var(--color-text-primary);
+    background-color: #fdfdfd; /* Very light off-white for inputs */
 }
 
 input[type="email"]:focus,
 input[type="password"]:focus,
 textarea:focus {
-    border-color: #4A90E2; /* Highlight focus with a modern blue */
-    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
     outline: none;
+    border-color: var(--color-primary-accent);
+    box-shadow: 0 0 0 2px rgba(176, 196, 177, 0.3); /* Focus ring with primary accent */
 }
 
 button {
-    /* background-color: #5cb85c; (Will be overridden by specific buttons) */
-    color: white;
-    padding: 12px 18px; /* Adjusted padding for better proportions */
+    background-color: var(--color-primary-accent);
+    color: var(--color-container-background); /* White text on accent buttons */
+    padding: 12px 18px; /* Adjusted padding */
     border: none;
-    border-radius: 6px;
+    border-radius: 6px; /* Softer radius */
     cursor: pointer;
-    font-family: 'Inter', sans-serif; /* Ensure font inheritance */
-    font-size: 1em; /* 16px */
-    font-weight: 500; /* Medium weight for button text */
-    width: 100%; 
-    margin-bottom: 10px; 
-    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    font-size: 16px;
+    font-weight: 500; /* Medium weight for buttons */
+    width: 100%;
+    margin-bottom: 10px;
+    transition: background-color 0.2s ease-in-out; /* Smooth transition */
 }
 
 button:hover {
-    /* background-color: #4cae4c; (Will be overridden) */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Primary action buttons */
-#login-button,
-#signup-button,
-#save-entry-button {
-    background-color: #4A90E2; /* Modern Blue */
-}
-
-#login-button:hover,
-#signup-button:hover,
-#save-entry-button:hover {
-    background-color: #357ABD; /* Darker blue on hover */
-}
-
-/* Logout and Delete buttons (Destructive/Distinct) */
-#logout-button,
-.delete-button { /* Changed from .delete-entry-button */
-    background-color: #E53E3E; /* Modern Red - A Kasaei Ruby */
-}
-
-#logout-button:hover,
-.delete-button:hover {
-    background-color: #C53030; /* Darker Red */
+    background-color: var(--color-primary-accent-hover);
 }
 
 #logout-button {
-    width: auto; 
-    float: right; 
-    padding: 8px 15px; /* Slightly smaller padding for auto-width button */
-    font-size: 0.9em;
+    background-color: var(--color-secondary-accent);
+    color: var(--color-text-primary); /* Darker text on light pink */
+    width: auto;
+    float: right;
+    padding: 8px 15px; /* Smaller padding for logout */
+    font-size: 14px;
 }
 
-/* Edit and Cancel Edit buttons (Secondary/Alternative Actions) */
-.edit-button, /* Changed from .edit-entry-button */
-#cancel-edit-button {
-    background-color: #718096; /* Modern Gray - A Kasaei Slate */
-    color: white;
-}
-
-.edit-button:hover,
-#cancel-edit-button:hover {
-    background-color: #4A5568; /* Darker Gray */
-}
-
-.form-button-group button {
-    font-weight: 500; /* Ensure consistent weight */
-}
-
-/* Adjusting specific button sizes in groups if needed */
-.edit-button,
-.delete-button {
-    width: auto; /* Allow them to size to content in their container */
-    flex-grow: 0; /* Don't grow to fill space in flex container */
-    padding: 8px 15px;  /* Smaller padding for these */
-    font-size: 0.9em;
-    margin-bottom: 0; /* Margin handled by entry-controls */
+#logout-button:hover {
+    background-color: var(--color-secondary-accent-hover);
 }
 
 .error-message {
-    color: red;
+    color: var(--color-error);
     text-align: center;
     margin-top: 10px;
+    font-size: 0.9em;
 }
 
 .success-message {
-    color: green;
+    color: var(--color-success);
     text-align: center;
     margin-top: 10px;
+    font-size: 0.9em;
 }
 
 #auth-container p a,
 #journal-container p a {
-    color: #4A90E2; /* Modern Blue - Kasaei theme */
+    color: var(--color-link);
     text-decoration: none;
+    font-weight: 500;
 }
 
 #auth-container p a:hover,
 #journal-container p a:hover {
     text-decoration: underline;
+    color: var(--color-link-hover);
 }
 
 #journal-form {
-    margin-bottom: 30px; /* Increased spacing */
+    margin-bottom: 25px; /* Increased margin */
 }
 
-#entries-list .entry {
-    /* background-color: #e9e9e9; (Replaced by new .entry style) */
-    /* padding: 10px; */
-    /* margin-bottom: 10px; */
-    /* border-radius: 4px; */
-    /* border-left: 5px solid #5cb85c; (Replaced by new .entry style) */
+#entries-list .entry p { /* This might be redundant if .entry styling is comprehensive */
+    margin: 8px 0; /* Adjusted margin */
 }
 
-/* Removed old #entries-list .entry p, .timestamp, .mood-score as they are superseded by .entry structure */
+#entries-list .entry .timestamp { /* Merged with general .timestamp below */
+    font-size: 0.85em; /* Slightly larger */
+    color: var(--color-text-secondary);
+}
+
+#entries-list .entry .mood-score { /* This class is no longer used, can be removed if confirmed */
+    font-weight: bold;
+    color: var(--color-text-primary);
+}
+
+#user-info {
+    margin-bottom: 25px; /* Increased margin */
+    padding-bottom: 15px; /* Increased padding */
+    border-bottom: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+#user-info p {
+    display: inline-block;
+    margin: 0;
+    font-size: 0.95em;
+}
 
 .entry {
-    background-color: #fff;
-    border: 1px solid #E2E8F0; /* Softer border - A Kasaei Cloud */
+    background-color: var(--color-container-background);
+    border: 1px solid var(--color-border);
     padding: 20px; /* Increased padding */
-    margin-bottom: 20px; /* Increased spacing */
-    border-radius: 8px; /* Consistent rounded corners */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Slightly enhanced shadow */
-}
-
-.entry-ai-title {
-    margin-top: 0;
-    margin-bottom: 12px;
-    font-size: 1.25em; /* 20px */
-    color: #1A202C;
-    font-weight: 600;
+    margin-bottom: 20px; /* Increased margin */
+    border-radius: 8px; /* Softer radius */
+    box-shadow: 0 2px 5px var(--shadow-color); /* Subtle shadow for entries */
 }
 
 .entry-content {
-    margin-bottom: 15px;
-    white-space: pre-wrap; 
-    line-height: 1.65; /* Slightly more line height for entry content */
-    color: #2D3748;
+    margin-bottom: 15px; /* Increased margin */
+    white-space: pre-wrap;
+    line-height: 1.6; /* Improved readability */
+    color: var(--color-text-primary);
 }
 
-.timestamp { /* For main entry timestamp */
-    font-size: 0.8125em; /* 13px */
-    color: #718096; /* A Kasaei Aluminum */
-    display: block; 
-    margin-bottom: 15px;
+.timestamp { /* General timestamp styling */
+    font-size: 0.85em;
+    color: var(--color-text-secondary);
+    display: block;
+    margin-bottom: 10px;
 }
 
 .ai-insights {
-    background-color: #f7fafc; /* Lighter background - A Kasaei Haze */
-    border: 1px solid #E2E8F0; /* Softer border - A Kasaei Cloud */
-    padding: 18px; 
-    margin-top: 18px; 
-    border-radius: 6px; 
-    font-size: 0.9375em; /* 15px */
-    line-height: 1.65;
+    background-color: #fAfBF8; /* Very light, almost white, derived from palette */
+    border: 1px solid var(--color-border);
+    padding: 15px; /* Increased padding */
+    margin-top: 15px; /* Increased margin */
+    border-radius: 6px; /* Softer radius */
 }
 
 .ai-insights p {
-    margin: 8px 0 12px 0; /* Adjusted paragraph spacing within insights */
-    color: #4A5568; /* A Kasaei Slate for AI text */
+    margin: 8px 0; /* Adjusted margin */
+    line-height: 1.5; /* Improved readability for AI content */
 }
 
 .ai-greeting {
     font-style: italic;
-    color: #4A5568; 
-    margin-bottom: 15px; /* More space after greeting */
-}
-
-/* Added style for AI observations paragraph */
-.ai-observations {
-    margin-bottom: 15px; /* Space after observations */
-    line-height: 1.6; /* Consistent with other AI text */
-    color: #4A5568; /* A Kasaei Slate for AI text */
-}
-
-/* Added style for AI sentiment analysis */
-.ai-sentiment-analysis {
+    color: var(--color-text-secondary); /* Use secondary text color */
     font-weight: 500;
-    margin-bottom: 10px;
-    color: #2D3748; /* A Kasaei Stone - Slightly darker for emphasis */
-    /* Consider adding a small top margin if needed, e.g., margin-top: 10px; */
+}
+
+.ai-observation {
+    color: var(--color-text-primary);
+}
+
+.ai-sentiment-analysis {
+    color: var(--color-text-primary);
+}
+
+.ai-observation p,
+.ai-sentiment-analysis p {
+    color: var(--color-text-primary);
+    font-weight: 500; /* Medium weight for better readability of these sections */
+    /* If only labels need to be bold, JS change is required to wrap labels */
 }
 
 .ai-reflective-prompt {
-    color: #3182CE; /* Slightly different blue for prompt - A Kasaei Ocean */
-    font-weight: 500; 
-    margin-top: 18px; 
-    border-top: 1px dashed #CBD5E0; /* Separator for prompt */
-    padding-top: 15px; /* Space above prompt text */
+    color: var(--color-text-primary); /* Changed to primary text color for contrast */
+    font-weight: 600; /* Bold for prompts */
+    margin-top: 10px;
 }
 
-.ai-timestamp { /* For AI analysis timestamp */
-    font-size: 0.8125em; /* 13px */
-    color: #A0AEC0; /* Lighter gray - A Kasaei Mist */
-    text-align: right;
-    margin-top: 15px;
+.ai-score { /* This class is no longer used for display but keeping style if it returns */
+    font-weight: bold;
+    color: var(--color-text-primary);
 }
 
-.ai-error-message {
-    color: #C5303E; /* Consistent red */
-    font-weight: 500;
+.ai-timestamp {
+    font-size: 0.8em; /* Slightly smaller */
+    color: var(--color-text-secondary);
+    margin-top: 10px; /* Increased margin */
+}
+
+.ai-error {
+    color: var(--color-error);
+    font-weight: 500; /* Medium weight for errors */
 }
 
 .ai-processing, .ai-unavailable {
-    color: #718096; /* A Kasaei Slate */
+    color: var(--color-text-secondary);
     font-style: italic;
 }
 
 .entry-controls {
     display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 10px; /* Space between buttons */
+    margin-top: 15px;
 }
 
-#cancel-edit-button { /* Styles for Cancel Edit in form-button-group */
-    background-color: #A0AEC0; /* A Kasaei Mist - more neutral cancel */
-    color: #1A202C;
-    /* border-color: #A0AEC0; (No border needed if solid bg) */
-    /* margin-left: 0; (Handled by gap in form-button-group) */
+.edit-entry-button, .delete-entry-button {
+    padding: 8px 12px; /* Smaller padding for action buttons */
+    font-size: 14px;
+    width: auto; /* Fit content */
+    margin-bottom: 0; /* Remove bottom margin as they are in a flex container */
+}
+
+.edit-entry-button {
+    background-color: var(--color-primary-accent);
+    color: var(--color-container-background);
+}
+
+.edit-entry-button:hover {
+    background-color: var(--color-primary-accent-hover);
+}
+
+.delete-entry-button {
+    background-color: var(--color-secondary-accent);
+    color: var(--color-text-primary);
+}
+
+.delete-entry-button:hover {
+    background-color: var(--color-secondary-accent-hover);
+}
+
+#cancel-edit-button {
+    background-color: var(--color-border); /* Using border color for a neutral look */
+    color: var(--color-text-primary);
+    font-weight: 500;
 }
 
 #cancel-edit-button:hover {
-    background-color: #718096; /* A Kasaei Slate */
-    color: white;
+    background-color: #c8c5bc; /* Darker shade of border color */
 }
 
-.form-button-group #cancel-edit-button {
-    /* Ensure these styles are specific enough if needed, or rely on general #cancel-edit-button */
-    background-color: #A0AEC0; 
-    color: #1A202C;
-}
-
-.form-button-group #cancel-edit-button:hover {
-    background-color: #718096; 
-    color: white;
-}
-
-/* Optional: Style for form when in edit mode */
 #journal-form.edit-mode textarea {
-    border-color: #4A90E2; /* Modern Blue - Kasaei theme (consistent with input focus) */
+    border-left: 3px solid var(--color-primary-accent); /* Indicate edit mode */
 }
 
 .form-button-group {
     display: flex;
-    gap: 10px; /* Adds space between buttons */
-    margin-bottom: 10px; /* Retain original margin-bottom for the group */
+    gap: 10px; /* Space between buttons in the group */
+    margin-top: 10px;
 }
 
 .form-button-group button {
-    flex-grow: 1; /* Allows buttons to grow but respects flex-basis */
-    width: auto; /* Override general button width: 100% */
-    margin-bottom: 0; /* Remove individual margin-bottom as group handles it */
+    flex-grow: 1; /* Allow buttons to grow and fill space */
+    /* width: auto; Removed, flex-grow handles it */
 }
 
-/* Give the primary action button more space if desired when both are visible */
 .form-button-group #save-entry-button {
-    flex-basis: 70%; /* Takes more space */
+    /* Specific styles if needed, otherwise inherits from button */
 }
 
 .form-button-group #cancel-edit-button {
-    flex-basis: 30%; /* Takes less space */
-    background-color: #A0AEC0; /* A Kasaei Mist - consistent with general #cancel-edit-button */
-    color: #1A202C; /* A Kasaei Coal - for text on light gray button */
-    /* border-color: #A0AEC0; (No border needed if solid bg) */
+    background-color: var(--color-border);
+    color: var(--color-text-primary);
+    /* flex-grow: 0; if you want it to be smaller */
 }
 
 .form-button-group #cancel-edit-button:hover {
-    background-color: #718096; /* A Kasaei Slate - consistent */
-    color: white;
+    background-color: #c8c5bc; /* Darker shade of border color */
 }
 
-/* Ensure Save Entry button is full width when Cancel is hidden */
+/* Ensure single button in group takes full width if needed */
 .form-button-group #save-entry-button:only-child {
-    flex-basis: 100%;
-}
-
-#user-info {
-    margin-bottom: 25px; /* Increased spacing */
-    padding-bottom: 15px; /* Increased spacing */
-    border-bottom: 1px solid #E2E8F0; /* Softer border - A Kasaei Cloud */
-    overflow: hidden; 
-    display: flex; /* Use flex for better alignment */
-    justify-content: space-between; /* Pushes items to ends */
-    align-items: center; /* Vertically align items */
-}
-
-#user-info p {
-    /* display: inline-block; (No longer needed with flex) */
-    margin: 0;
-    font-size: 0.9375em; /* 15px */
-    color: #4A5568; /* A Kasaei Slate */
-}
-
-.entry {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.entry-ai-title {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 1.4em;
-    color: #333;
-}
-
-.entry-content {
-    margin-bottom: 10px;
-    white-space: pre-wrap; /* Preserve line breaks in content display */
-}
-
-.timestamp {
-    font-size: 0.8em;
-    color: #777;
-    display: block; /* Ensure it takes its own line if needed */
-    margin-bottom: 10px;
-}
-
-.ai-insights {
-    background-color: #f9f9f9;
-    border: 1px solid #eee;
-    padding: 10px;
-    margin-top: 10px;
-    border-radius: 4px;
-}
-
-.ai-insights p {
-    margin: 5px 0;
-}
-
-.ai-greeting {
-    font-style: italic;
-    color: #555;
-}
-
-.ai-observation {
-    color: #333;
-}
-
-/* New style for sentiment analysis if needed, or just use default paragraph */
-.ai-sentiment-analysis {
-    color: #333; /* Same as observation for consistency */
-}
-
-.ai-reflective-prompt {
-    color: #0056b3; /* A distinct color for prompts */
-    font-weight: bold;
-}
-
-.ai-timestamp {
-    font-size: 0.75em;
-    color: #888;
-    margin-top: 8px;
-}
-
-.ai-error {
-    color: #d9534f; /* Bootstrap danger color */
-    font-weight: bold;
-}
-
-.ai-processing, .ai-unavailable {
-    color: #718096; /* A Kasaei Slate */
-    font-style: italic;
-}
-
-.entry-controls {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-/* Styles for AI-generated observations paragraph */
-/* .ai-observations { ... } */
-
-/* Styles for AI-generated sentiment analysis */
-/* .ai-sentiment-analysis { ... } */
-
-/* .ai-reflective-prompt { ... } */
-
-/* .ai-timestamp { ... } */
-
-/* .ai-error { ... } */
-
-/* .ai-processing, .ai-unavailable { ... } */
-
-/* Styles for the container of edit/delete buttons within each journal entry */
-/* .entry-controls { ... } */
-
-/* Styles for the button group in the form */
-/* .form-button-group { ... } */
-
-/* .form-button-group button { ... } */
-
-/* .form-button-group #save-entry-button { ... } */
-
-/* .form-button-group #cancel-edit-button { ... } */
-
-/* .form-button-group #cancel-edit-button:hover { ... } */
-
-/* .form-button-group #save-entry-button:only-child { ... } */ 
+    width: 100%;
+} 
