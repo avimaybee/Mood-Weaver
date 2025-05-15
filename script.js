@@ -41,6 +41,17 @@ const entriesList = document.getElementById('entries-list');
 const saveEntryButton = document.getElementById('save-entry-button'); // Get the save/update button
 const cancelEditButton = document.getElementById('cancel-edit-button'); // Get the cancel edit button
 
+// --- Placeholder Phrases --- 
+const placeholderPhrases = [
+    "Start typing your thoughts here...",
+    "What's on your mind today?",
+    "How are you feeling right now?",
+    "Write about your day...",
+    "Pour your heart out here...",
+    "Capture your mood..."
+];
+
+// --- Variables --- 
 let currentUser = null;
 let entriesListener = null; // To hold the Firestore listener
 let editingEntryId = null; // To store the ID of the entry being edited
@@ -189,6 +200,12 @@ if (auth.currentUser) {
 }
 
 // --- Journal Logic --- 
+
+// Set random placeholder on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const randomIndex = Math.floor(Math.random() * placeholderPhrases.length);
+    journalEntryInput.placeholder = placeholderPhrases[randomIndex];
+});
 
 function formatUserFriendlyTimestamp(firestoreTimestamp) {
     if (!firestoreTimestamp || !firestoreTimestamp.toDate) {
