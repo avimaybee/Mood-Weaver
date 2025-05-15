@@ -171,6 +171,11 @@ button:hover {
     color: #333;
 }
 
+/* New style for sentiment analysis if needed, or just use default paragraph */
+.ai-sentiment-analysis {
+    color: #333; /* Same as observation for consistency */
+}
+
 .ai-reflective-prompt {
     color: #0056b3; /* A distinct color for prompts */
     font-weight: bold;

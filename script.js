@@ -267,10 +267,9 @@ journalForm.addEventListener('submit', async (e) => {
                 await entryRef.update({
                     aiTitle: aiData.aiTitle || "AI Title Placeholder",
                     aiGreeting: aiData.aiGreeting || "Hello!",
-                    aiObservation1: aiData.aiObservation1 || "Observation 1 placeholder.",
-                    aiObservation2: aiData.aiObservation2 || "Observation 2 placeholder.",
+                    aiObservations: aiData.aiObservations || "Observations placeholder.",
+                    aiSentimentAnalysis: aiData.aiSentimentAnalysis || "Sentiment analysis placeholder.",
                     aiReflectivePrompt: aiData.aiReflectivePrompt || "What are your thoughts?",
-                    aiScore: aiData.aiScore !== undefined ? aiData.aiScore : null,
                     aiTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     aiError: null 
                 });
@@ -327,10 +326,9 @@ journalForm.addEventListener('submit', async (e) => {
                     await newEntryRef.update({
                         aiTitle: aiData.aiTitle || "AI Title Placeholder",
                         aiGreeting: aiData.aiGreeting || "Hello!",
-                        aiObservation1: aiData.aiObservation1 || "Observation 1 placeholder.",
-                        aiObservation2: aiData.aiObservation2 || "Observation 2 placeholder.",
+                        aiObservations: aiData.aiObservations || "Observations placeholder.",
+                        aiSentimentAnalysis: aiData.aiSentimentAnalysis || "Sentiment analysis placeholder.",
                         aiReflectivePrompt: aiData.aiReflectivePrompt || "What are your thoughts?",
-                        aiScore: aiData.aiScore !== undefined ? aiData.aiScore : null,
                         aiTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
                         aiError: null
                     });
@@ -456,21 +454,18 @@ function loadJournalEntries() {
                 if (entry.aiGreeting) {
                     insightsHtml += `<p class="ai-greeting"><em>${entry.aiGreeting}</em></p>`;
                     }
-                if (entry.aiObservation1) {
-                    insightsHtml += `<p class="ai-observation"><strong>Observation 1:</strong> ${entry.aiObservation1}</p>`;
-                    }
-                if (entry.aiObservation2) {
-                    insightsHtml += `<p class="ai-observation"><strong>Observation 2:</strong> ${entry.aiObservation2}</p>`;
-                    }
+                if (entry.aiObservations) {
+                    insightsHtml += `<p class="ai-observation"><strong>Observations:</strong> ${entry.aiObservations}</p>`;
+                }
+                if (entry.aiSentimentAnalysis) {
+                    insightsHtml += `<p class="ai-sentiment-analysis"><strong>Sentiment:</strong> ${entry.aiSentimentAnalysis}</p>`;
+                }
                 if (entry.aiReflectivePrompt) {
                     insightsHtml += `<p class="ai-reflective-prompt"><strong>Reflect:</strong> ${entry.aiReflectivePrompt}</p>`;
-                    }
-                if (entry.aiScore !== null && entry.aiScore !== undefined) {
-                    insightsHtml += `<p class="ai-score"><strong>AI Score:</strong> ${entry.aiScore}</p>`;
                 }
                 if (entry.aiTimestamp) {
                     insightsHtml += `<p class="ai-timestamp">Analysis on: ${entry.aiTimestamp.toDate().toLocaleString()}</p>`;
-                    }
+                }
                     aiInsightsDiv.innerHTML = insightsHtml;
             } else if (entry.timestamp) {
                 aiInsightsDiv.innerHTML = '<p class="ai-processing">Processing AI analysis...</p>';
