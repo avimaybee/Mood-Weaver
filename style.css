@@ -174,7 +174,7 @@ button:hover {
 }
 
 .entry {
-    background-color: var(--color-border); /* Light Grayish Beige background for entry boxes */
+    background-color: var(--color-container-background); /* Reverted to White background */
     border: 1px solid var(--color-border);
     padding: 20px; /* Increased padding */
     margin-bottom: 20px; /* Increased margin */
@@ -198,8 +198,8 @@ button:hover {
 }
 
 .ai-insights {
-    background-color: var(--color-primary-accent); /* Muted Green/Sage background */
-    border: 1px solid var(--color-primary-accent-hover); /* Darker Sage border */
+    background-color: #fAfBF8; /* Reverted to very light off-white */
+    border: 1px solid var(--color-border); /* Reverted to  Light Grayish Beige border */
     padding: 15px; /* Increased padding */
     margin-top: 15px; /* Increased margin */
     border-radius: 6px; /* Softer radius */
@@ -208,13 +208,13 @@ button:hover {
 .ai-insights p {
     margin: 8px 0; /* Adjusted margin */
     line-height: 1.6; /* Standardized line height with entry-content */
-    color: var(--color-container-background); /* Change text to white for contrast on green background */
+    /* Removed: color: var(--color-container-background); */
 }
 
 .ai-greeting {
     font-style: italic;
+    color: var(--color-text-secondary); /* Reverted to secondary text color */
     font-weight: 500;
-    /* color: var(--color-container-background); Inherited */
 }
 
 .ai-observation {
@@ -227,12 +227,12 @@ button:hover {
 
 .ai-observation p,
 .ai-sentiment-analysis p {
-    /* color: var(--color-container-background); Inherited */
+    color: var(--color-text-primary); /* Reverted */
     font-weight: 500; /* Medium weight for better readability of these sections */
 }
 
 .ai-reflective-prompt {
-    /* color: var(--color-container-background); Inherited */
+    color: var(--color-text-primary); /* Reverted */
     font-weight: 600; /* Bold for prompts */
     margin-top: 10px;
 }
@@ -243,22 +243,19 @@ button:hover {
 }
 
 .ai-timestamp {
-    font-size: 0.75em; /* Slightly reduced for less dominance, consistent with .timestamp logic */
-    /* color: var(--color-container-background); Inherited - might need to be slightly off-white for subtlety */
-    opacity: 0.85; /* Make timestamp slightly less prominent on the green background */
-    margin-top: 10px; /* Increased margin */
+    font-size: 0.75em; 
+    color: var(--color-text-secondary); /* Reverted */
+    margin-top: 10px; 
 }
 
 .ai-error {
-    /* color: var(--color-container-background); Inherited */
-    font-weight: 600; /* Bolder for errors to stand out */
-    /* Consider a very light pink or yellow if white on green is not distinct enough for error */
+    color: var(--color-error); /* Reverted */
+    font-weight: 500; /* Reverted font-weight */
 }
 
 .ai-processing, .ai-unavailable {
-    /* color: var(--color-container-background); Inherited */
+    color: var(--color-text-secondary); /* Reverted */
     font-style: italic;
-    opacity: 0.85; /* Make these less prominent */
 }
 
 .entry-controls {
