@@ -15,32 +15,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// --- Day.js Setup ---
-dayjs.extend(window.dayjs_plugin_relativeTime);
-dayjs.extend(window.dayjs_plugin_isSameOrYesterday);
-
-function formatJournalTimestamp(firebaseTimestamp) {
-    if (!firebaseTimestamp || typeof firebaseTimestamp.toDate !== 'function') {
-        return "Oops, cant fetch time or date";
-    }
-    const date = dayjs(firebaseTimestamp.toDate());
-    const now = dayjs();
-
-    if (date.isSame(now, 'day')) {
-        return `Today, ${date.format('h:mm A')}`;
-    }
-    if (date.isSame(now.subtract(1, 'day'), 'day')) { // Check if it's yesterday using Day.js plugin
-        return `Yesterday, ${date.format('h:mm A')}`;
-    }
-    // For "X days ago", "X weeks ago", "X months ago"
-    // fromNow() gives "X days/weeks/months ago". We want to append the time.
-    if (now.diff(date, 'month') < 1) { // If less than a month old, use relative time + actual time
-        return `${date.fromNow()}, ${date.format('h:mm A')}`; // e.g., "3 days ago, 10:00 AM" or "2 weeks ago, 2:30 PM"
-    }
-    // Default to a more absolute format for very old entries
-    return date.format('MMM D, YYYY, h:mm A'); // e.g., Aug 15, 2023, 10:30 AM
-}
-
 // --- DOM Elements --- 
 const authContainer = document.getElementById('auth-container');
 const journalContainer = document.getElementById('journal-container');
@@ -212,6 +186,41 @@ if (auth.currentUser) {
 }
 
 // --- Journal Logic --- 
+
+function formatUserFriendlyTimestamp(firestoreTimestamp) {
+    if (!firestoreTimestamp || !firestoreTimestamp.toDate) {
+        return 'Date not available'; 
+    }
+
+    const date = firestoreTimestamp.toDate();
+    const now = new Date();
+
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    const timeOptions = { hour: 'numeric', minute: 'numeric', hour12: true };
+    const timeString = date.toLocaleTimeString('en-US', timeOptions); 
+
+    const entryDateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    if (entryDateOnly.getTime() === today.getTime()) {
+        return `Today, ${timeString}`;
+    } else if (entryDateOnly.getTime() === yesterday.getTime()) {
+        return `Yesterday, ${timeString}`;
+    } else if (entryDateOnly.getTime() > sevenDaysAgo.getTime()) { // Check if the entry date is AFTER sevenDaysAgo (i.e., within the last 7 days)
+        const diffTime = Math.abs(today.getTime() - entryDateOnly.getTime()); 
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return `${diffDays} days ago, ${timeString}`;
+    } else {
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+        const dateString = date.toLocaleDateString('en-US', dateOptions); 
+        return `${dateString}, ${timeString}`;
+    }
+}
 
 // Function to set the form to edit mode
 function setEditMode(entry) {
@@ -425,12 +434,13 @@ async function handleDeleteEntry(entryId) {
 
 // Load and display journal entries
 function loadJournalEntries() {
-    if (!currentUser) {
-        entriesList.innerHTML = '<p>Please log in to see your entries.</p>';
-        return;
-    }
+    if (!currentUser) return;
+    console.log('Loading journal entries for user:', currentUser.uid);
 
-    if (entriesListener) entriesListener(); // Detach any existing listener
+    if (entriesListener) {
+        entriesListener();
+        console.log('Detached previous Firestore listener.');
+    }
 
     const entriesQuery = db.collection('users').doc(currentUser.uid).collection('entries')
         .orderBy('timestamp', 'desc');
@@ -463,58 +473,43 @@ function loadJournalEntries() {
             contentP.textContent = entry.content;
             entryDiv.appendChild(contentP);
 
+            // Timestamp for the entry itself
             const entryTimestampSpan = document.createElement('span');
             entryTimestampSpan.classList.add('timestamp');
-            entryTimestampSpan.textContent = `Saved: ${formatJournalTimestamp(entry.timestamp)}`;
+            // Use the new formatting function for the entry timestamp
+            entryTimestampSpan.textContent = `Saved: ${entry.timestamp ? formatUserFriendlyTimestamp(entry.timestamp) : 'Saving...'}`;
             entryDiv.appendChild(entryTimestampSpan);
-            entryDiv.appendChild(document.createElement('hr'));
+            
+            entryDiv.appendChild(document.createElement('hr')); // Visual separator
 
+            // AI Insights Section
             const aiInsightsDiv = document.createElement('div');
             aiInsightsDiv.classList.add('ai-insights');
 
             if (entry.aiError) {
-                const errorP = document.createElement('p');
-                errorP.classList.add('ai-error-message');
-                errorP.textContent = `AI Analysis Error: ${entry.aiError}`;
-                aiInsightsDiv.appendChild(errorP);
-            } else if (entry.aiGreeting || entry.aiObservations || entry.aiSentimentAnalysis || entry.aiReflectivePrompt) {
-                // Greeting
+                aiInsightsDiv.innerHTML = `<p class="ai-error"><strong>AI Analysis:</strong> Error - ${entry.aiError}</p>`;
+            } else if (entry.aiTitle || entry.aiGreeting) {
+                let insightsHtml = '';
                 if (entry.aiGreeting) {
-                    const greetingP = document.createElement('p');
-                    greetingP.classList.add('ai-greeting');
-                    greetingP.textContent = entry.aiGreeting;
-                    aiInsightsDiv.appendChild(greetingP);
-                }
-
-                // Observations
+                    insightsHtml += `<p class="ai-greeting"><em>${entry.aiGreeting}</em></p>`;
+                    }
                 if (entry.aiObservations) {
-                    const observationsP = document.createElement('p');
-                    observationsP.textContent = entry.aiObservations;
-                    aiInsightsDiv.appendChild(observationsP);
+                    insightsHtml += `<p class="ai-observation"><strong>Observations:</strong> ${entry.aiObservations}</p>`;
                 }
-
-                // Sentiment Analysis
                 if (entry.aiSentimentAnalysis) {
-                    const sentimentP = document.createElement('p');
-                    sentimentP.textContent = entry.aiSentimentAnalysis;
-                    aiInsightsDiv.appendChild(sentimentP);
+                    insightsHtml += `<p class="ai-sentiment-analysis"><strong>Sentiment:</strong> ${entry.aiSentimentAnalysis}</p>`;
                 }
-                
-                // Reflective Prompt
                 if (entry.aiReflectivePrompt) {
-                    const reflectiveP = document.createElement('p');
-                    reflectiveP.classList.add('ai-reflective-prompt');
-                    reflectiveP.textContent = entry.aiReflectivePrompt;
-                    aiInsightsDiv.appendChild(reflectiveP);
+                    insightsHtml += `<p class="ai-reflective-prompt"><strong>Reflect:</strong> ${entry.aiReflectivePrompt}</p>`;
                 }
-
-                // AI Timestamp
                 if (entry.aiTimestamp) {
                     const aiTimeP = document.createElement('p');
                     aiTimeP.classList.add('ai-timestamp');
-                    aiTimeP.textContent = `Analyzed: ${formatJournalTimestamp(entry.aiTimestamp)}`; 
+                    // Use the new formatting function for the AI analysis timestamp
+                    aiTimeP.textContent = `Analyzed: ${formatUserFriendlyTimestamp(entry.aiTimestamp)}`;
                     aiInsightsDiv.appendChild(aiTimeP);
                 }
+                    aiInsightsDiv.innerHTML = insightsHtml;
             } else if (entry.timestamp) {
                 aiInsightsDiv.innerHTML = '<p class="ai-processing">Processing AI analysis...</p>';
             } else {
