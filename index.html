@@ -37,10 +37,12 @@
             <h2>My Journal</h2>
             <form id="journal-form">
                 <label for="journal-entry">Write your entry:</label>
-                <textarea id="journal-entry" rows="5" required></textarea>
-                <button type="submit">Save Entry</button>
+                <textarea id="journal-entry" placeholder="Write your entry..." rows="6"></textarea>
+                <button type="submit" id="save-entry-button">Save Entry</button>
+                <button type="button" id="cancel-edit-button" style="display: none;">Cancel Edit</button>
+                <p id="entry-success" class="success-message"></p>
             </form>
-            <p id="entry-success" class="success-message"></p>
+            <hr>
             <h3>Your Entries:</h3>
             <div id="entries-list">
                 <!-- Entries will be dynamically loaded here -->

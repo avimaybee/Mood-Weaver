@@ -37,60 +37,12 @@ const journalForm = document.getElementById('journal-form');
 const journalEntryInput = document.getElementById('journal-entry');
 const entrySuccessMessage = document.getElementById('entry-success');
 const entriesList = document.getElementById('entries-list');
+const saveEntryButton = document.getElementById('save-entry-button'); // Get the save/update button
+const cancelEditButton = document.getElementById('cancel-edit-button'); // Get the cancel edit button
 
 let currentUser = null;
 let entriesListener = null; // To hold the Firestore listener
-
-// --- Keyword-Based Mood Scoring Logic (Client-Side) --- 
-const positiveKeywords = ['happy', 'good', 'great', 'love', 'joy', 'awesome', 'excited', 'wonderful', 'pleased', 'blessed', 
-    'fantastic', 'amazing', 'excellent', 'positive', 'optimistic', 'cheerful', 'thrilled', 'delighted', 'satisfied', 'grateful',
-    'supportive', 'caring', 'kind', 'friendly', 'peaceful', 'calm', 'relaxed', 'comfortable', 'energetic', 'lively',
-    'beautiful', 'pretty', 'lovely', 'bright', 'sunny', 'vibrant', 'successful', 'achieved', 'accomplished', 'improved',
-    'strong', 'confident', 'hopeful', 'inspired', 'motivated', 'proud', 'thankful', 'fortunate', 'lucky', 'valued',
-    'connected', 'belonging', 'understood', 'appreciated', 'respected', 'safe', 'secure', 'content', 'eager', 'ready',
-    'clean', 'fresh', 'pure', 'healthy', 'well', 'fit', 'stronger', 'better', 'improved', 'progress',
-    'fun', 'playful', 'amused', 'entertained', 'joyful', 'upbeat', 'spirited', 'optimistic', 'bright', 'shiny'];
-
-const negativeKeywords = ['sad', 'bad', 'angry', 'hate', 'stress', 'terrible', 'awful', 'worried', 'frustrated', 'lonely',
-    'unhappy', 'poor', 'terrible', 'dislike', 'sorrow', 'anxious', 'upset', 'miserable', 'dissatisfied', 'ungrateful',
-    'unsupportive', 'uncaring', 'unkind', 'unfriendly', 'stressful', 'tense', 'nervous', 'uncomfortable', 'tired', 'lethargic',
-    'ugly', 'unpleasant', 'dark', 'gloomy', 'dull', 'failed', 'lost', 'stuck', 'worse', 'declined',
-    'weak', 'insecure', 'hopeless', 'uninspired', 'unmotivated', 'ashamed', 'unthankful', 'unfortunate', 'unlucky', 'unvalued',
-    'disconnected', 'isolated', 'misunderstood', 'unappreciated', 'disrespected', 'unsafe', 'insecure', 'discontent', 'reluctant', 'hesitant',
-    'dirty', 'stale', 'impure', 'unhealthy', 'unwell', 'unfit', 'weaker', 'worse', 'declined', 'regress',
-    'boring', 'dull', 'unamused', 'unentertained', 'gloomy', 'downcast', 'listless', 'pessimistic', 'dark', 'cloudy'];
-    
-const negationWords = ['not', "don't", "isn't", "weren't", "wasn't", "couldn't", "wouldn't", "shouldn't", "haven't", "hasn't", "hadn't", 'won\'t', 'wouldn\'t', 'can\'t', 'cannot', 'no', 'never'];
-
-function calculateMoodScore(content) {
-    let score = 0;
-    // Convert to lowercase and split into words for easier processing
-    const words = content.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/);
-
-    words.forEach((word, index) => {
-        // Check for positive keywords
-        if (positiveKeywords.includes(word)) {
-            // Check if the previous word is a negation word
-            if (index > 0 && negationWords.includes(words[index - 1])) {
-                score--; // Negated positive word contributes negatively
-            } else {
-                score++; // Non-negated positive word contributes positively
-            }
-        }
-
-        // Check for negative keywords
-        if (negativeKeywords.includes(word)) {
-             // Check if the previous word is a negation word
-            if (index > 0 && negationWords.includes(words[index - 1])) {
-                score++; // Negated negative word contributes positively
-            } else {
-                score--; // Non-negated negative word contributes negatively
-            }
-        }
-    });
-
-    return score;
-}
+let editingEntryId = null; // To store the ID of the entry being edited
 
 // --- Authentication Logic --- 
 
@@ -235,94 +187,223 @@ if (auth.currentUser) {
 
 // --- Journal Logic --- 
 
-// Save New Entry
-journalForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const entryText = journalEntryInput.value.trim();
-    entrySuccessMessage.textContent = ''; 
-    const saveButton = journalForm.querySelector('button[type="submit"]'); // Get the save button
+// Function to set the form to edit mode
+function setEditMode(entry) {
+    journalEntryInput.value = entry.content;
+    saveEntryButton.textContent = 'Update Entry';
+    cancelEditButton.style.display = 'inline-block';
+    journalForm.classList.add('edit-mode'); // Optional: for CSS styling
+    editingEntryId = entry.id;
+    journalEntryInput.focus();
+}
 
-    if (!entryText) {
-        alert('Please write something in your entry.');
-        return;
-    }
+// Function to reset the form from edit mode
+function resetFormMode() {
+    journalEntryInput.value = '';
+    saveEntryButton.textContent = 'Save Entry';
+    cancelEditButton.style.display = 'none';
+    journalForm.classList.remove('edit-mode');
+    editingEntryId = null;
+    entrySuccessMessage.textContent = ''; // Clear any messages
+}
 
-    if (!currentUser) {
-        alert('You must be logged in to save an entry.');
-        return;
-    }
-
-    saveButton.disabled = true; // Disable button
-    entrySuccessMessage.textContent = 'Saving entry...';
-
-    const moodScore = calculateMoodScore(entryText);
-    const entryObject = {
-        userId: currentUser.uid,
-        content: entryText,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        moodScore: moodScore,
-        aiAnalysis: null 
-    };
-    let newEntryRef;
-
-    db.collection('users').doc(currentUser.uid).collection('entries').add(entryObject)
-        .then((docRef) => {
-            newEntryRef = docRef;
-            console.log('Entry saved with ID:', docRef.id);
-            journalEntryInput.value = ''; 
-            entrySuccessMessage.textContent = 'Entry saved! Analyzing with AI...';
-            return fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ entryContent: entryText })
-            });
-        })
-        .then(response => {
-            if (!response.ok) {
-                response.json().then(errData => {
-                    console.error('AI analysis error from backend:', errData);
-                    entrySuccessMessage.textContent = 'Entry saved. AI analysis failed.';
-                }).catch(() => {
-                    console.error('AI analysis error from backend (non-JSON response):', response.status);
-                    entrySuccessMessage.textContent = 'Entry saved. AI analysis failed (server error).';
-                });
-                return null; 
-            }
-            return response.json();
-        })
-        .then(aiData => {
-            if (aiData && newEntryRef) {
-                if (aiData.error) {
-                    console.warn('AI Analysis returned an error object:', aiData.error);
-                    entrySuccessMessage.textContent = `Entry saved. AI analysis issue: ${aiData.error}`;
-                    return newEntryRef.update({ 
-                        aiAnalysis: { error: aiData.error, details: aiData.details || 'No details' } 
-                    });
-                } else {
-                    console.log('AI Analysis successful:', aiData);
-                    entrySuccessMessage.textContent = 'Entry saved and AI analysis complete!';
-                    return newEntryRef.update({ aiAnalysis: aiData });
-                }
-            } 
-        })
-        .catch((error) => {
-            console.error('Error saving entry or during AI analysis fetch:', error);
-            entrySuccessMessage.textContent = 'Failed to save entry or AI analysis error.';
-        })
-        .finally(() => {
-            saveButton.disabled = false; // Re-enable button
-            setTimeout(() => { entrySuccessMessage.textContent = ''; }, 5000);
-        });
+// Event listener for the Cancel Edit button
+cancelEditButton.addEventListener('click', () => {
+    resetFormMode();
 });
 
-// Load and Display Entries (Real-time)
+// Handle journal entry submission (Create or Update)
+journalForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const entryContent = journalEntryInput.value.trim();
+    entrySuccessMessage.textContent = ''; 
+    saveEntryButton.disabled = true;
+
+    if (!entryContent) {
+        alert('Please write something in your journal entry.');
+        saveEntryButton.disabled = false;
+        return;
+    }
+    if (!currentUser) {
+        alert('No user logged in. Please log in to save/update entries.');
+        saveEntryButton.disabled = false;
+        console.error("Attempted to save/update entry without logged-in user.");
+        return;
+    }
+
+    if (editingEntryId) {
+        // --- UPDATE EXISTING ENTRY ---
+        entrySuccessMessage.textContent = 'Updating entry...';
+        const entryRef = db.collection('users').doc(currentUser.uid).collection('entries').doc(editingEntryId);
+        
+        try {
+            await entryRef.update({
+                content: entryContent,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                // AI fields will be re-analyzed below
+            });
+            console.log('Journal entry updated in Firestore with ID:', editingEntryId);
+            entrySuccessMessage.textContent = 'Entry updated! Re-analyzing with AI...';
+
+            // Trigger re-analysis
+            const aiResponse = await fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entryContent: entryContent })
+            });
+
+            if (!aiResponse.ok) {
+                const errData = await aiResponse.json().catch(() => null);
+                const errorMessage = errData ? (errData.error || JSON.stringify(errData)) : `Server error: ${aiResponse.status}`;
+                console.error('AI re-analysis error from backend:', errorMessage);
+                entrySuccessMessage.textContent = 'Entry updated. AI re-analysis failed.';
+                await entryRef.update({ 
+                    aiError: `Update successful, but re-analysis failed: ${errorMessage}`,
+                    aiTimestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } else {
+                const aiData = await aiResponse.json();
+                console.log('AI Re-analysis successful. Data from backend:', aiData);
+                await entryRef.update({
+                    aiTitle: aiData.aiTitle || "AI Title Placeholder",
+                    aiGreeting: aiData.aiGreeting || "Hello!",
+                    aiObservation1: aiData.aiObservation1 || "Observation 1 placeholder.",
+                    aiObservation2: aiData.aiObservation2 || "Observation 2 placeholder.",
+                    aiReflectivePrompt: aiData.aiReflectivePrompt || "What are your thoughts?",
+                    aiScore: aiData.aiScore !== undefined ? aiData.aiScore : null,
+                    aiTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    aiError: null 
+                });
+                entrySuccessMessage.textContent = 'Entry updated and AI re-analysis complete!';
+            }
+            resetFormMode();
+        } catch (error) {
+            console.error('Error updating journal entry or during AI re-analysis:', error);
+            entrySuccessMessage.textContent = 'Failed to update entry or AI re-analysis error.';
+            // Optionally update Firestore with a general update error if needed
+        } finally {
+            saveEntryButton.disabled = false;
+            setTimeout(() => { entrySuccessMessage.textContent = ''; }, 7000);
+        }
+
+    } else {
+        // --- CREATE NEW ENTRY --- (existing logic, slightly adapted)
+        entrySuccessMessage.textContent = 'Saving entry...';
+        const newEntryData = {
+            userId: currentUser.uid,
+            content: entryContent,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            // AI fields will be added after backend processing
+        };
+        let newEntryRef;
+        try {
+            const docRef = await db.collection('users').doc(currentUser.uid).collection('entries').add(newEntryData);
+            newEntryRef = docRef;
+            console.log('Journal entry initially saved with ID:', docRef.id);
+            journalEntryInput.value = ''; 
+            entrySuccessMessage.textContent = 'Entry saved! Analyzing with AI...';
+
+            const aiResponse = await fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entryContent: entryContent })
+            });
+
+            if (!aiResponse.ok) {
+                const errData = await aiResponse.json().catch(() => null);
+                const errorMessage = errData ? (errData.error || JSON.stringify(errData)) : `Server error: ${aiResponse.status}`;
+                console.error('AI analysis error from backend:', errorMessage);
+                entrySuccessMessage.textContent = 'Entry saved. AI analysis failed.';
+                if (newEntryRef) {
+                   await newEntryRef.update({ 
+                       aiError: errorMessage,
+                       aiTimestamp: firebase.firestore.FieldValue.serverTimestamp() 
+                    });
+                }
+            } else {
+                const aiData = await aiResponse.json();
+                console.log('AI Analysis successful. Data from backend:', aiData);
+                if (newEntryRef) {
+                    await newEntryRef.update({
+                        aiTitle: aiData.aiTitle || "AI Title Placeholder",
+                        aiGreeting: aiData.aiGreeting || "Hello!",
+                        aiObservation1: aiData.aiObservation1 || "Observation 1 placeholder.",
+                        aiObservation2: aiData.aiObservation2 || "Observation 2 placeholder.",
+                        aiReflectivePrompt: aiData.aiReflectivePrompt || "What are your thoughts?",
+                        aiScore: aiData.aiScore !== undefined ? aiData.aiScore : null,
+                        aiTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        aiError: null
+                    });
+                    entrySuccessMessage.textContent = 'Entry saved and AI analysis complete!';
+                }
+            }
+        } catch (error) {
+            console.error('Error during new entry processing or AI analysis:', error);
+            if (!entrySuccessMessage.textContent.includes('failed') && !entrySuccessMessage.textContent.includes('issue')) {
+                 entrySuccessMessage.textContent = 'Failed to process new entry fully.';
+            }
+            if (newEntryRef && !error.toString().includes('AI analysis')) {
+                newEntryRef.update({ 
+                    aiError: `Frontend error on new entry: ${error.message}`,
+                    aiTimestamp: firebase.firestore.FieldValue.serverTimestamp()
+                }).catch(updateError => console.error("Failed to update new entry with error state:", updateError));
+            }
+        } finally {
+            saveEntryButton.disabled = false;
+            if (!editingEntryId) journalEntryInput.value = ''; // Clear only if not in edit mode (though resetFormMode handles it for edits)
+            setTimeout(() => { entrySuccessMessage.textContent = ''; }, 7000);
+        }
+    }
+});
+
+// Function to handle Edit button click
+async function handleEditEntry(entryId) {
+    if (!currentUser) return;
+    console.log('Attempting to edit entry ID:', entryId);
+    try {
+        const entryRef = db.collection('users').doc(currentUser.uid).collection('entries').doc(entryId);
+        const doc = await entryRef.get();
+        if (doc.exists) {
+            setEditMode({ id: doc.id, ...doc.data() });
+        } else {
+            console.error('No such document to edit!');
+            alert('Error: Could not find the entry to edit.');
+        }
+    } catch (error) {
+        console.error('Error fetching entry for edit:', error);
+        alert('Error fetching entry. Please try again.');
+    }
+}
+
+// Function to handle Delete button click
+async function handleDeleteEntry(entryId) {
+    if (!currentUser) return;
+    console.log('Attempting to delete entry ID:', entryId);
+
+    if (confirm("Are you sure you want to delete this entry? This action cannot be undone.")) {
+        entrySuccessMessage.textContent = 'Deleting entry...'; // Provide feedback
+        try {
+            await db.collection('users').doc(currentUser.uid).collection('entries').doc(entryId).delete();
+            console.log('Journal entry deleted with ID:', entryId);
+            entrySuccessMessage.textContent = 'Entry deleted successfully.';
+             if (editingEntryId === entryId) { // If the deleted entry was being edited
+                resetFormMode();
+            }
+        } catch (error) {
+            console.error('Error deleting journal entry:', error);
+            alert('Error deleting entry. Please try again.');
+            entrySuccessMessage.textContent = 'Failed to delete entry.';
+        } finally {
+             setTimeout(() => { entrySuccessMessage.textContent = ''; }, 5000);
+        }
+    }
+}
+
+// Load and display journal entries
 function loadJournalEntries() {
     if (!currentUser) return;
     console.log('Loading journal entries for user:', currentUser.uid);
 
-    // Detach any existing listener before attaching a new one
     if (entriesListener) {
         entriesListener();
         console.log('Detached previous Firestore listener.');
@@ -331,12 +412,12 @@ function loadJournalEntries() {
     const entriesQuery = db.collection('users').doc(currentUser.uid).collection('entries')
         .orderBy('timestamp', 'desc');
 
-    // Attach real-time listener
     entriesListener = entriesQuery.onSnapshot(snapshot => {
         console.log(`Received ${snapshot.docs.length} entries from Firestore.`);
-        entriesList.innerHTML = ''; // Clear current list
+        entriesList.innerHTML = ''; 
         if (snapshot.empty) {
             entriesList.innerHTML = '<p>No entries yet. Write one above!</p>';
+            if (editingEntryId) resetFormMode(); // If editing and all entries are deleted, reset form
             return;
         }
 
@@ -345,64 +426,89 @@ function loadJournalEntries() {
             const entryId = doc.id;
             const entryDiv = document.createElement('div');
             entryDiv.classList.add('entry');
-            entryDiv.dataset.id = entryId; // Store ID if needed later
+            entryDiv.dataset.id = entryId;
+
+            if (entry.aiTitle) {
+                const titleH3 = document.createElement('h3');
+                titleH3.classList.add('entry-ai-title');
+                titleH3.textContent = entry.aiTitle;
+                entryDiv.appendChild(titleH3);
+            }
 
             const contentP = document.createElement('p');
+            contentP.classList.add('entry-content');
             contentP.textContent = entry.content;
+            entryDiv.appendChild(contentP);
 
             const timestampSpan = document.createElement('span');
             timestampSpan.classList.add('timestamp');
             timestampSpan.textContent = entry.timestamp ? entry.timestamp.toDate().toLocaleString() : 'Saving...';
-
-            entryDiv.appendChild(contentP);
             entryDiv.appendChild(timestampSpan);
             entryDiv.appendChild(document.createElement('br'));
 
-            // Display Client-Side Mood Score (optional, can be removed if AI score is preferred)
-            const moodScoreSpan = document.createElement('span');
-            moodScoreSpan.classList.add('mood-score');
-            moodScoreSpan.textContent = `Initial Score: ${entry.moodScore === null || entry.moodScore === undefined ? 'N/A' : entry.moodScore}`;
-            entryDiv.appendChild(moodScoreSpan);
-            entryDiv.appendChild(document.createElement('br'));
-
-            // Display AI Analysis from Firestore
             const aiInsightsDiv = document.createElement('div');
             aiInsightsDiv.classList.add('ai-insights');
 
-            if (entry.aiAnalysis) {
-                if (entry.aiAnalysis.error) {
-                    aiInsightsDiv.innerHTML = `<p><strong>AI Analysis:</strong> Error - ${entry.aiAnalysis.error}</p>`;
-                } else {
-                    let insightsHtml = '<p><strong>AI Insights:</strong></p>';
-                    if (entry.aiAnalysis.keySentimentSummary) {
-                        insightsHtml += `<p>Summary: ${entry.aiAnalysis.keySentimentSummary}</p>`;
-                    }
-                    if (entry.aiAnalysis.dominantThemes && entry.aiAnalysis.dominantThemes.length > 0) {
-                        insightsHtml += `<p>Themes: ${entry.aiAnalysis.dominantThemes.join(', ')}</p>`;
-                    }
-                    if (entry.aiAnalysis.highlight) {
-                        insightsHtml += `<p>Highlight: \"${entry.aiAnalysis.highlight}\"</p>`;
-                    }
-                    if (entry.aiAnalysis.reflectivePrompt) {
-                        insightsHtml += `<p>To Consider: ${entry.aiAnalysis.reflectivePrompt}</p>`;
-                    }
-                    if (entry.aiAnalysis.simpleScore !== null && entry.aiAnalysis.simpleScore !== undefined) {
-                        insightsHtml += `<p>AI Score: ${entry.aiAnalysis.simpleScore}</p>`;
-                    }
-                    aiInsightsDiv.innerHTML = insightsHtml;
+            if (entry.aiError) {
+                aiInsightsDiv.innerHTML = `<p class="ai-error"><strong>AI Analysis:</strong> Error - ${entry.aiError}</p>`;
+            } else if (entry.aiTitle || entry.aiGreeting) {
+                let insightsHtml = '';
+                if (entry.aiGreeting) {
+                    insightsHtml += `<p class="ai-greeting"><em>${entry.aiGreeting}</em></p>`;
                 }
-            } else if (entry.timestamp) { // Only show this if it's not a brand new entry still processing
-                aiInsightsDiv.innerHTML = '<p>AI analysis not yet available or not applicable for this entry.</p>';
+                if (entry.aiObservation1) {
+                    insightsHtml += `<p class="ai-observation"><strong>Observation 1:</strong> ${entry.aiObservation1}</p>`;
+                }
+                if (entry.aiObservation2) {
+                    insightsHtml += `<p class="ai-observation"><strong>Observation 2:</strong> ${entry.aiObservation2}</p>`;
+                }
+                if (entry.aiReflectivePrompt) {
+                    insightsHtml += `<p class="ai-reflective-prompt"><strong>Reflect:</strong> ${entry.aiReflectivePrompt}</p>`;
+                }
+                if (entry.aiScore !== null && entry.aiScore !== undefined) {
+                    insightsHtml += `<p class="ai-score"><strong>AI Score:</strong> ${entry.aiScore}</p>`;
+                }
+                if (entry.aiTimestamp) {
+                    insightsHtml += `<p class="ai-timestamp">Analysis on: ${entry.aiTimestamp.toDate().toLocaleString()}</p>`;
+                }
+                aiInsightsDiv.innerHTML = insightsHtml;
+            } else if (entry.timestamp) {
+                aiInsightsDiv.innerHTML = '<p class="ai-processing">Processing AI analysis...</p>';
             } else {
-                 aiInsightsDiv.innerHTML = '<p>Processing AI analysis...</p>'; // For brand new entries before AI data is back
+                aiInsightsDiv.innerHTML = '<p class="ai-unavailable">AI analysis not yet available.</p>';
             }
             entryDiv.appendChild(aiInsightsDiv);
 
+            const controlsDiv = document.createElement('div');
+            controlsDiv.classList.add('entry-controls');
+
+            const editButton = document.createElement('button');
+            editButton.classList.add('edit-entry-button');
+            editButton.textContent = 'Edit';
+            editButton.dataset.id = entryId;
+            editButton.addEventListener('click', () => handleEditEntry(entryId)); // Attach listener
+
+            const deleteButton = document.createElement('button');
+            deleteButton.classList.add('delete-entry-button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.dataset.id = entryId;
+            deleteButton.addEventListener('click', () => handleDeleteEntry(entryId)); // Attach listener
+
+            controlsDiv.appendChild(editButton);
+            controlsDiv.appendChild(deleteButton);
+            entryDiv.appendChild(controlsDiv);
+
             entriesList.appendChild(entryDiv);
         });
+         // If the currently edited entry is no longer in the snapshot (e.g., deleted by another client), reset form.
+        if (editingEntryId && !snapshot.docs.find(doc => doc.id === editingEntryId)) {
+            console.log(`Edited entry ${editingEntryId} no longer found. Resetting form.`);
+            resetFormMode();
+        }
     }, error => {
         console.error('Error fetching entries:', error);
         entriesList.innerHTML = '<p class="error-message">Could not load entries. Please refresh.</p>';
+        if (editingEntryId) resetFormMode(); // Also reset form on general fetch error if editing
     });
     console.log('Attached Firestore listener for entries.');
 } 

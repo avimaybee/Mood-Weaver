@@ -120,4 +120,131 @@ button:hover {
 #user-info p {
     display: inline-block; /* Keep email and logout button on the same line */
     margin: 0;
+}
+
+.entry {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.entry-ai-title {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.4em;
+    color: #333;
+}
+
+.entry-content {
+    margin-bottom: 10px;
+    white-space: pre-wrap; /* Preserve line breaks in content display */
+}
+
+.timestamp {
+    font-size: 0.8em;
+    color: #777;
+    display: block; /* Ensure it takes its own line if needed */
+    margin-bottom: 10px;
+}
+
+.ai-insights {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 4px;
+}
+
+.ai-insights p {
+    margin: 5px 0;
+}
+
+.ai-greeting {
+    font-style: italic;
+    color: #555;
+}
+
+.ai-observation {
+    color: #333;
+}
+
+.ai-reflective-prompt {
+    color: #0056b3; /* A distinct color for prompts */
+    font-weight: bold;
+}
+
+.ai-score {
+    font-weight: bold;
+}
+
+.ai-timestamp {
+    font-size: 0.75em;
+    color: #888;
+    margin-top: 8px;
+}
+
+.ai-error {
+    color: #d9534f; /* Bootstrap danger color */
+    font-weight: bold;
+}
+
+.ai-processing, .ai-unavailable {
+    color: #777;
+    font-style: italic;
+}
+
+.entry-controls {
+    margin-top: 10px;
+    text-align: right;
+}
+
+.edit-entry-button, .delete-entry-button {
+    padding: 6px 12px;
+    margin-left: 8px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.edit-entry-button {
+    background-color: #5bc0de; /* Bootstrap info */
+    color: white;
+    border-color: #46b8da;
+}
+
+.edit-entry-button:hover {
+    background-color: #31b0d5;
+    border-color: #269abc;
+}
+
+.delete-entry-button {
+    background-color: #d9534f; /* Bootstrap danger */
+    color: white;
+    border-color: #d43f3a;
+}
+
+.delete-entry-button:hover {
+    background-color: #c9302c;
+    border-color: #ac2925;
+}
+
+#cancel-edit-button {
+    background-color: #f0ad4e; /* Bootstrap warning */
+    color: white;
+    border-color: #eea236;
+    margin-left: 8px; /* Add some spacing if it appears next to update button */
+}
+
+#cancel-edit-button:hover {
+    background-color: #ec971f;
+    border-color: #d58512;
+}
+
+/* Optional: Style for form when in edit mode */
+#journal-form.edit-mode textarea {
+    border-color: #5bc0de; /* Match edit button color */
 } 
