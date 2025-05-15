@@ -159,7 +159,8 @@ button:hover {
 }
 
 .ai-insights p {
-    margin: 5px 0;
+    margin: 8px 0; /* Increased default margin for AI insight paragraphs */
+    line-height: 1.5; /* Improved line height for readability */
 }
 
 .ai-greeting {
@@ -172,12 +173,35 @@ button:hover {
 }
 
 .ai-reflective-prompt {
-    color: #0056b3; /* A distinct color for prompts */
-    font-weight: bold;
+    background-color: #eef7ff; /* Light blueish background */
+    padding: 10px;
+    border-radius: 4px;
+    border-left: 4px solid #0056b3;
+    color: #003d80; /* Darker blue text */
+    font-weight: normal; /* Override previous bold if any */
+    font-style: italic;
+    margin-top: 12px; /* More space above it */
+    margin-bottom: 12px; /* More space below it */
+}
+
+.ai-sentiment-narrative {
+    margin-top: 8px;
+    font-style: italic;
+    color: #4a4a4a; /* A slightly different color for emphasis */
+    border-left: 3px solid #007bff;
+    padding-left: 8px;
 }
 
 .ai-score {
+    font-size: 0.9em;
     font-weight: bold;
+}
+
+.ai-score-explanation {
+    font-size: 0.8em;
+    font-weight: normal;
+    color: #555;
+    font-style: italic;
 }
 
 .ai-timestamp {
@@ -247,4 +271,69 @@ button:hover {
 /* Optional: Style for form when in edit mode */
 #journal-form.edit-mode textarea {
     border-color: #5bc0de; /* Match edit button color */
+}
+
+.form-button-group {
+    display: flex;
+    gap: 10px; /* Adds space between buttons */
+    margin-bottom: 10px; /* Retain original margin-bottom for the group */
+}
+
+.form-button-group button {
+    flex-grow: 1; /* Allows buttons to grow but respects flex-basis */
+    width: auto; /* Override general button width: 100% */
+    margin-bottom: 0; /* Remove individual margin-bottom as group handles it */
+}
+
+/* Give the primary action button more space if desired when both are visible */
+.form-button-group #save-entry-button {
+    flex-basis: 70%; /* Takes more space */
+}
+
+.form-button-group #cancel-edit-button {
+    flex-basis: 30%; /* Takes less space */
+    background-color: #f0ad4e; /* Bootstrap warning */
+    color: white;
+    border-color: #eea236;
+    /* margin-left is handled by gap in flex container */
+}
+
+.form-button-group #cancel-edit-button:hover {
+    background-color: #ec971f;
+    border-color: #d58512;
+}
+
+/* Ensure Save Entry button is full width when Cancel is hidden */
+.form-button-group #save-entry-button:only-child {
+    flex-basis: 100%;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 480px) {
+    body {
+        padding: 10px; /* Reduce body padding on small screens */
+    }
+
+    #app {
+        padding: 15px; /* Reduce app padding */
+    }
+
+    .form-button-group {
+        flex-direction: column; /* Stack buttons vertically */
+    }
+
+    .form-button-group button {
+        width: 100%; /* Make stacked buttons full width */
+        flex-basis: auto; /* Reset flex-basis when stacked */
+    }
+
+    .entry-controls {
+        text-align: center; /* Center edit/delete buttons */
+    }
+
+    .edit-entry-button, .delete-entry-button {
+        width: calc(50% - 10px); /* Make them take up half width with some gap */
+        margin: 5px; 
+        display: inline-block;
+    }
 } 
