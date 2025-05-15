@@ -44,33 +44,6 @@ let currentUser = null;
 let entriesListener = null; // To hold the Firestore listener
 let editingEntryId = null; // To store the ID of the entry being edited
 
-// --- Utility Functions ---
-function formatDisplayTimestamp(firebaseTimestamp) {
-    if (!firebaseTimestamp || !firebaseTimestamp.toDate) {
-        return 'Date not available';
-    }
-    const date = firebaseTimestamp.toDate();
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-    const oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
-
-    const timeString = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-
-    if (date >= today) {
-        return `Today, ${timeString}`;
-    } else if (date >= yesterday) {
-        return `Yesterday, ${timeString}`;
-    } else if (date >= oneWeekAgo) {
-        // Display day of the week for recent past days
-        const dayName = date.toLocaleDateString([], { weekday: 'short' });
-        return `${dayName}, ${timeString}`;
-    } else {
-        // Older dates: Month Day, Year, Time
-        return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' + timeString;
-    }
-}
-
 // --- Authentication Logic --- 
 
 // Toggle between Login and Sign Up forms
@@ -260,122 +233,126 @@ journalForm.addEventListener('submit', async (e) => {
 
     if (editingEntryId) {
         // --- UPDATE EXISTING ENTRY ---
-        entrySuccessMessage.textContent = 'Updating entry and re-analyzing...';
+        entrySuccessMessage.textContent = 'Updating entry...';
+        const entryRef = db.collection('users').doc(currentUser.uid).collection('entries').doc(editingEntryId);
+        
+        try {
+            await entryRef.update({
+                content: entryContent,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                // AI fields will be re-analyzed below
+            });
+            console.log('Journal entry updated in Firestore with ID:', editingEntryId);
+            entrySuccessMessage.textContent = 'Entry updated! Re-analyzing with AI...';
 
-        db.collection('users').doc(currentUser.uid).collection('entries').doc(editingEntryId).update({
-            content: entryContent,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            aiTitle: "Re-analyzing title...",
-            aiGreeting: "Re-analyzing greeting...",
-            aiObservation1: "Re-analyzing observation 1...",
-            aiObservation2: "Re-analyzing observation 2...",
-            aiReflectivePrompt: "Re-analyzing reflective prompt...",
-            aiScore: null, 
-            aiSentimentNarrative: "Re-analyzing sentiment narrative...",
-            aiTimestamp: firebase.firestore.FieldValue.serverTimestamp(), // Placeholder, backend might update this specific one
-            analysisError: null
-        })
-        .then(() => {
-            console.log('Entry updated in Firestore with ID:', editingEntryId, 'Resetting AI fields.');
-            entrySuccessMessage.textContent = 'Entry updated! Requesting AI re-analysis...';
-            // Now call the backend to perform AI analysis and update Firestore
-            fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
+            // Trigger re-analysis
+            const aiResponse = await fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    entryContent: entryContent, 
-                    entryId: editingEntryId, 
-                    userId: currentUser.uid
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    // Log backend error, but Firestore update might still fail if backend cant write
-                    console.error('Backend AI re-analysis call failed:', response.status);
-                    // The onSnapshot listener will eventually show the placeholder or an error if backend fails to update FS
-                } else {
-                    console.log('Backend AI re-analysis call successful for updated entry.');
-                }
-            })
-            .catch(error => {
-                console.error('Error calling backend for AI re-analysis:', error);
+                body: JSON.stringify({ entryContent: entryContent })
             });
-            // No need to resetFormMode() here, onSnapshot will refresh UI.
-            // Success message will be updated by onSnapshot eventually or stay as is.
-        })
-        .catch((error) => {
+
+            if (!aiResponse.ok) {
+                const errData = await aiResponse.json().catch(() => null);
+                const errorMessage = errData ? (errData.error || JSON.stringify(errData)) : `Server error: ${aiResponse.status}`;
+                console.error('AI re-analysis error from backend:', errorMessage);
+                entrySuccessMessage.textContent = 'Entry updated. AI re-analysis failed.';
+                await entryRef.update({ 
+                    aiError: `Update successful, but re-analysis failed: ${errorMessage}`,
+                    aiTimestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } else {
+                const aiData = await aiResponse.json();
+                console.log('AI Re-analysis successful. Data from backend:', aiData);
+                await entryRef.update({
+                    aiTitle: aiData.aiTitle || "AI Title Placeholder",
+                    aiGreeting: aiData.aiGreeting || "Hello!",
+                    aiObservation1: aiData.aiObservation1 || "Observation 1 placeholder.",
+                    aiObservation2: aiData.aiObservation2 || "Observation 2 placeholder.",
+                    aiReflectivePrompt: aiData.aiReflectivePrompt || "What are your thoughts?",
+                    aiScore: aiData.aiScore !== undefined ? aiData.aiScore : null,
+                    aiTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    aiError: null 
+                });
+                entrySuccessMessage.textContent = 'Entry updated and AI re-analysis complete!';
+            }
+            resetFormMode();
+        } catch (error) {
             console.error('Error updating journal entry or during AI re-analysis:', error);
             entrySuccessMessage.textContent = 'Failed to update entry or AI re-analysis error.';
             // Optionally update Firestore with a general update error if needed
-        })
-        .finally(() => {
+        } finally {
             saveEntryButton.disabled = false;
             setTimeout(() => { entrySuccessMessage.textContent = ''; }, 7000);
-        });
+        }
 
     } else {
         // --- CREATE NEW ENTRY --- (existing logic, slightly adapted)
-        entrySuccessMessage.textContent = 'Saving entry and analyzing...';
-        console.log('Attempting to add new entry for user:', currentUser.uid);
-
-        db.collection('users').doc(currentUser.uid).collection('entries').add({
-            userId: currentUser.uid,
+    entrySuccessMessage.textContent = 'Saving entry...';
+        const newEntryData = {
+        userId: currentUser.uid,
             content: entryContent,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            aiTitle: "Analyzing title...",
-            aiGreeting: "Analyzing greeting...",
-            aiObservation1: "Analyzing observation 1...",
-            aiObservation2: "Analyzing observation 2...",
-            aiReflectivePrompt: "Analyzing reflective prompt...",
-            aiScore: null,
-            aiSentimentNarrative: "Analyzing sentiment narrative...",
-            aiTimestamp: null, 
-            analysisError: null
-        })
-        .then((docRef) => {
-            console.log('New entry skeleton saved to Firestore with ID:', docRef.id);
-            entrySuccessMessage.textContent = 'Entry saved! Requesting AI analysis...';
-            // Now call the backend to perform AI analysis and update Firestore
-            fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            // AI fields will be added after backend processing
+    };
+    let newEntryRef;
+        try {
+            const docRef = await db.collection('users').doc(currentUser.uid).collection('entries').add(newEntryData);
+            newEntryRef = docRef;
+            console.log('Journal entry initially saved with ID:', docRef.id);
+            journalEntryInput.value = ''; 
+            entrySuccessMessage.textContent = 'Entry saved! Analyzing with AI...';
+
+            const aiResponse = await fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    entryContent: entryContent, 
-                    entryId: docRef.id, 
-                    userId: currentUser.uid
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                     console.error('Backend AI analysis call failed:', response.status);
-                     // Firestore will still have placeholders, or error if backend fails to update FS
-                } else {
-                    console.log('Backend AI analysis call successful for new entry.');
-                }
-            })
-            .catch(error => {
-                console.error('Error calling backend for AI analysis:', error);
+                body: JSON.stringify({ entryContent: entryContent })
             });
-            // journalEntryInput.value = ''; // Clear input after successful initial save
-            // The onSnapshot listener will pick up the initial save and then the AI-populated update.
-        })
-        .catch((error) => {
+
+            if (!aiResponse.ok) {
+                const errData = await aiResponse.json().catch(() => null);
+                const errorMessage = errData ? (errData.error || JSON.stringify(errData)) : `Server error: ${aiResponse.status}`;
+                console.error('AI analysis error from backend:', errorMessage);
+                    entrySuccessMessage.textContent = 'Entry saved. AI analysis failed.';
+                if (newEntryRef) {
+                   await newEntryRef.update({ 
+                       aiError: errorMessage,
+                       aiTimestamp: firebase.firestore.FieldValue.serverTimestamp() 
+                    });
+                }
+                } else {
+                const aiData = await aiResponse.json();
+                console.log('AI Analysis successful. Data from backend:', aiData);
+                if (newEntryRef) {
+                    await newEntryRef.update({
+                        aiTitle: aiData.aiTitle || "AI Title Placeholder",
+                        aiGreeting: aiData.aiGreeting || "Hello!",
+                        aiObservation1: aiData.aiObservation1 || "Observation 1 placeholder.",
+                        aiObservation2: aiData.aiObservation2 || "Observation 2 placeholder.",
+                        aiReflectivePrompt: aiData.aiReflectivePrompt || "What are your thoughts?",
+                        aiScore: aiData.aiScore !== undefined ? aiData.aiScore : null,
+                        aiTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        aiError: null
+                    });
+                    entrySuccessMessage.textContent = 'Entry saved and AI analysis complete!';
+                }
+            }
+        } catch (error) {
             console.error('Error during new entry processing or AI analysis:', error);
             if (!entrySuccessMessage.textContent.includes('failed') && !entrySuccessMessage.textContent.includes('issue')) {
                  entrySuccessMessage.textContent = 'Failed to process new entry fully.';
             }
-            if (docRef && !error.toString().includes('AI analysis')) {
-                docRef.update({ 
+            if (newEntryRef && !error.toString().includes('AI analysis')) {
+                newEntryRef.update({ 
                     aiError: `Frontend error on new entry: ${error.message}`,
                     aiTimestamp: firebase.firestore.FieldValue.serverTimestamp()
                 }).catch(updateError => console.error("Failed to update new entry with error state:", updateError));
-            }
-        })
-        .finally(() => {
+                }
+        } finally {
             saveEntryButton.disabled = false;
             if (!editingEntryId) journalEntryInput.value = ''; // Clear only if not in edit mode (though resetFormMode handles it for edits)
             setTimeout(() => { entrySuccessMessage.textContent = ''; }, 7000);
-        });
+        }
     }
 });
 
@@ -417,7 +394,7 @@ async function handleDeleteEntry(entryId) {
             alert('Error deleting entry. Please try again.');
             entrySuccessMessage.textContent = 'Failed to delete entry.';
         } finally {
-             setTimeout(() => { entrySuccessMessage.textContent = ''; }, 5000);
+            setTimeout(() => { entrySuccessMessage.textContent = ''; }, 5000);
         }
     }
 }
@@ -451,8 +428,7 @@ function loadJournalEntries() {
             entryDiv.classList.add('entry');
             entryDiv.dataset.id = entryId;
 
-            // AI Title: Only display if it's a real title and not a placeholder
-            if (entry.aiTitle && !entry.aiTitle.toLowerCase().includes("analyzing")) {
+            if (entry.aiTitle) {
                 const titleH3 = document.createElement('h3');
                 titleH3.classList.add('entry-ai-title');
                 titleH3.textContent = entry.aiTitle;
@@ -466,7 +442,7 @@ function loadJournalEntries() {
 
             const timestampSpan = document.createElement('span');
             timestampSpan.classList.add('timestamp');
-            timestampSpan.textContent = entry.timestamp ? formatDisplayTimestamp(entry.timestamp) : 'Saving...';
+            timestampSpan.textContent = entry.timestamp ? entry.timestamp.toDate().toLocaleString() : 'Saving...';
             entryDiv.appendChild(timestampSpan);
             entryDiv.appendChild(document.createElement('br'));
 
@@ -474,75 +450,31 @@ function loadJournalEntries() {
             aiInsightsDiv.classList.add('ai-insights');
 
             if (entry.aiError) {
-                aiInsightsDiv.innerHTML = `<p class="ai-error"><strong>AI Analysis Error:</strong> ${entry.aiError}</p>`;
-            } else if (entry.aiTimestamp || entry.aiGreeting) { // Check if any AI data might be present or coming
-                // Clear previous insights before adding new ones for this entry
-                aiInsightsDiv.innerHTML = ''; // Clear out "Processing..." or old data
-
-                let hasContent = false;
-
-                if (entry.aiGreeting && !entry.aiGreeting.toLowerCase().includes("analyzing")) {
-                    const greetingP = document.createElement('p');
-                    greetingP.classList.add('ai-greeting');
-                    greetingP.textContent = entry.aiGreeting;
-                    aiInsightsDiv.appendChild(greetingP);
-                    hasContent = true;
-                }
-                if (entry.aiObservation1 && !entry.aiObservation1.toLowerCase().includes("analyzing")) {
-                    const observation1P = document.createElement('p');
-                    observation1P.classList.add('ai-observation');
-                    observation1P.textContent = entry.aiObservation1; // Removed "Observation 1:" prefix for cleaner look
-                    aiInsightsDiv.appendChild(observation1P);
-                    hasContent = true;
-                }
-                if (entry.aiObservation2 && !entry.aiObservation2.toLowerCase().includes("analyzing")) {
-                    const observation2P = document.createElement('p');
-                    observation2P.classList.add('ai-observation');
-                    observation2P.textContent = entry.aiObservation2; // Removed "Observation 2:" prefix
-                    aiInsightsDiv.appendChild(observation2P);
-                    hasContent = true;
-                }
-                if (entry.aiSentimentNarrative && !entry.aiSentimentNarrative.toLowerCase().includes("analyzing")) {
-                    const narrativeP = document.createElement('p');
-                    narrativeP.classList.add('ai-sentiment-narrative');
-                    narrativeP.textContent = entry.aiSentimentNarrative;
-                    aiInsightsDiv.appendChild(narrativeP);
-                    hasContent = true;
-                }
-                if (entry.aiReflectivePrompt && !entry.aiReflectivePrompt.toLowerCase().includes("analyzing")) {
-                    const promptP = document.createElement('p');
-                    promptP.classList.add('ai-reflective-prompt');
-                    promptP.textContent = entry.aiReflectivePrompt; // Removed "Reflect:" prefix
-                    aiInsightsDiv.appendChild(promptP);
-                    hasContent = true;
-                }
-
+                aiInsightsDiv.innerHTML = `<p class="ai-error"><strong>AI Analysis:</strong> Error - ${entry.aiError}</p>`;
+            } else if (entry.aiTitle || entry.aiGreeting) {
+                let insightsHtml = '';
+                if (entry.aiGreeting) {
+                    insightsHtml += `<p class="ai-greeting"><em>${entry.aiGreeting}</em></p>`;
+                    }
+                if (entry.aiObservation1) {
+                    insightsHtml += `<p class="ai-observation"><strong>Observation 1:</strong> ${entry.aiObservation1}</p>`;
+                    }
+                if (entry.aiObservation2) {
+                    insightsHtml += `<p class="ai-observation"><strong>Observation 2:</strong> ${entry.aiObservation2}</p>`;
+                    }
+                if (entry.aiReflectivePrompt) {
+                    insightsHtml += `<p class="ai-reflective-prompt"><strong>Reflect:</strong> ${entry.aiReflectivePrompt}</p>`;
+                    }
                 if (entry.aiScore !== null && entry.aiScore !== undefined) {
-                    const scoreP = document.createElement('p');
-                    scoreP.classList.add('ai-score');
-                    scoreP.innerHTML = `<strong>Overall Feeling Score:</strong> ${entry.aiScore} <span class="ai-score-explanation"> (from -5 very challenging to +5 very positive)</span>`;
-                    aiInsightsDiv.appendChild(scoreP);
-                    hasContent = true;
+                    insightsHtml += `<p class="ai-score"><strong>AI Score:</strong> ${entry.aiScore}</p>`;
                 }
-
                 if (entry.aiTimestamp) {
-                    const aiTimestampP = document.createElement('p');
-                    aiTimestampP.classList.add('ai-timestamp');
-                    aiTimestampP.textContent = `Analyzed on: ${formatDisplayTimestamp(entry.aiTimestamp)}`;
-                    aiInsightsDiv.appendChild(aiTimestampP);
-                    hasContent = true; 
-                }
-                
-                // If no actual AI content was added (e.g., all fields were "analyzing..."), show processing.
-                if (!hasContent && entry.timestamp) { // entry.timestamp check to ensure it's not a brand new unsaved entry
-                     aiInsightsDiv.innerHTML = '<p class="ai-processing">AI analysis in progress...</p>';
-                } else if (!hasContent) {
-                    aiInsightsDiv.innerHTML = '<p class="ai-unavailable">AI analysis not yet available.</p>';
-                }
-
-            } else if (entry.timestamp) { // If no AI data at all yet, but entry is saved
-                aiInsightsDiv.innerHTML = '<p class="ai-processing">AI analysis in progress...</p>';
-            } else { // Fallback for entries that are somehow missing everything
+                    insightsHtml += `<p class="ai-timestamp">Analysis on: ${entry.aiTimestamp.toDate().toLocaleString()}</p>`;
+                    }
+                    aiInsightsDiv.innerHTML = insightsHtml;
+            } else if (entry.timestamp) {
+                aiInsightsDiv.innerHTML = '<p class="ai-processing">Processing AI analysis...</p>';
+            } else {
                 aiInsightsDiv.innerHTML = '<p class="ai-unavailable">AI analysis not yet available.</p>';
             }
             entryDiv.appendChild(aiInsightsDiv);
