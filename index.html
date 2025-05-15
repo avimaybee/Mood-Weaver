@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mood Weaver</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,14 +19,14 @@
                 <h3>Login</h3>
                 <input type="email" id="login-email" placeholder="Email" required>
                 <input type="password" id="login-password" placeholder="Password" required>
-                <button id="login-button">Login</button>
+                <button id="login-button"><i class="fas fa-sign-in-alt"></i> Login</button>
                 <p>Don't have an account? <a href="#" id="show-signup">Sign Up</a></p>
             </div>
             <div id="signup-form" style="display: none;">
                 <h3>Sign Up</h3>
                 <input type="email" id="signup-email" placeholder="Email" required>
                 <input type="password" id="signup-password" placeholder="Password" required>
-                <button id="signup-button">Sign Up</button>
+                <button id="signup-button"><i class="fas fa-user-plus"></i> Sign Up</button>
                 <p>Already have an account? <a href="#" id="show-login">Login</a></p>
             </div>
             <p id="auth-error" class="error-message"></p>
@@ -32,15 +36,15 @@
         <div id="journal-container" style="display: none;">
             <div id="user-info">
                 <p>Logged in as: <span id="user-email-display"></span></p>
-                <button id="logout-button">Logout</button>
+                <button id="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
             <h2>My Journal</h2>
             <form id="journal-form">
                 <label for="journal-entry">Write your entry:</label>
                 <textarea id="journal-entry" placeholder="Write your entry..." rows="6"></textarea>
                 <div class="form-button-group">
-                    <button type="submit" id="save-entry-button">Save Entry</button>
-                    <button type="button" id="cancel-edit-button" style="display: none;">Cancel Edit</button>
+                    <button type="submit" id="save-entry-button"><i class="fas fa-save"></i> Save Entry</button>
+                    <button type="button" id="cancel-edit-button" style="display: none;"><i class="fas fa-times"></i> Cancel Edit</button>
                 </div>
                 <p id="entry-success" class="success-message"></p>
             </form>
@@ -57,11 +61,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
-    <!-- Day.js for improved timestamp formatting -->
-    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isSameOrYesterday.js"></script>
 
     <script src="script.js"></script>
 </body>
