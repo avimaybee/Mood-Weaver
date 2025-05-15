@@ -265,22 +265,43 @@ journalForm.addEventListener('submit', async (e) => {
         db.collection('users').doc(currentUser.uid).collection('entries').doc(editingEntryId).update({
             content: entryContent,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            // Reset AI fields for re-analysis by the backend
             aiTitle: "Re-analyzing title...",
             aiGreeting: "Re-analyzing greeting...",
             aiObservation1: "Re-analyzing observation 1...",
             aiObservation2: "Re-analyzing observation 2...",
             aiReflectivePrompt: "Re-analyzing reflective prompt...",
-            aiScore: null, // Reset score
-            aiSentimentNarrative: "Re-analyzing sentiment narrative...", // New field
-            aiTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            analysisError: null // Clear any previous error
+            aiScore: null, 
+            aiSentimentNarrative: "Re-analyzing sentiment narrative...",
+            aiTimestamp: firebase.firestore.FieldValue.serverTimestamp(), // Placeholder, backend might update this specific one
+            analysisError: null
         })
         .then(() => {
-            console.log('Entry updated in Firestore, AI fields reset for re-analysis.');
-            entrySuccessMessage.textContent = 'Entry updated! AI analysis is refreshing.';
-            // Frontend will automatically re-fetch and display updated AI insights via onSnapshot
-            // No need to call fetch here directly anymore as the backend handles all AI.
+            console.log('Entry updated in Firestore with ID:', editingEntryId, 'Resetting AI fields.');
+            entrySuccessMessage.textContent = 'Entry updated! Requesting AI re-analysis...';
+            // Now call the backend to perform AI analysis and update Firestore
+            fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    entryContent: entryContent, 
+                    entryId: editingEntryId, 
+                    userId: currentUser.uid
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Log backend error, but Firestore update might still fail if backend cant write
+                    console.error('Backend AI re-analysis call failed:', response.status);
+                    // The onSnapshot listener will eventually show the placeholder or an error if backend fails to update FS
+                } else {
+                    console.log('Backend AI re-analysis call successful for updated entry.');
+                }
+            })
+            .catch(error => {
+                console.error('Error calling backend for AI re-analysis:', error);
+            });
+            // No need to resetFormMode() here, onSnapshot will refresh UI.
+            // Success message will be updated by onSnapshot eventually or stay as is.
         })
         .catch((error) => {
             console.error('Error updating journal entry or during AI re-analysis:', error);
@@ -301,22 +322,42 @@ journalForm.addEventListener('submit', async (e) => {
             userId: currentUser.uid,
             content: entryContent,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            // Initialize AI fields - backend will populate them
             aiTitle: "Analyzing title...",
             aiGreeting: "Analyzing greeting...",
             aiObservation1: "Analyzing observation 1...",
             aiObservation2: "Analyzing observation 2...",
             aiReflectivePrompt: "Analyzing reflective prompt...",
             aiScore: null,
-            aiSentimentNarrative: "Analyzing sentiment narrative...", // New field
-            aiTimestamp: null, // Will be set by backend after analysis
+            aiSentimentNarrative: "Analyzing sentiment narrative...",
+            aiTimestamp: null, 
             analysisError: null
         })
         .then((docRef) => {
             console.log('New entry skeleton saved to Firestore with ID:', docRef.id);
-            entrySuccessMessage.textContent = 'Entry saved! AI analysis in progress.';
+            entrySuccessMessage.textContent = 'Entry saved! Requesting AI analysis...';
+            // Now call the backend to perform AI analysis and update Firestore
+            fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    entryContent: entryContent, 
+                    entryId: docRef.id, 
+                    userId: currentUser.uid
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                     console.error('Backend AI analysis call failed:', response.status);
+                     // Firestore will still have placeholders, or error if backend fails to update FS
+                } else {
+                    console.log('Backend AI analysis call successful for new entry.');
+                }
+            })
+            .catch(error => {
+                console.error('Error calling backend for AI analysis:', error);
+            });
+            // journalEntryInput.value = ''; // Clear input after successful initial save
             // The onSnapshot listener will pick up the initial save and then the AI-populated update.
-            // No explicit fetch call needed here as backend triggers analysis and updates the doc.
         })
         .catch((error) => {
             console.error('Error during new entry processing or AI analysis:', error);
