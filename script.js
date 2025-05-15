@@ -489,7 +489,6 @@ function loadJournalEntries() {
                 // Observations
                 if (entry.aiObservations) {
                     const observationsP = document.createElement('p');
-                    observationsP.classList.add('ai-observations');
                     observationsP.textContent = entry.aiObservations;
                     aiInsightsDiv.appendChild(observationsP);
                 }
@@ -497,7 +496,6 @@ function loadJournalEntries() {
                 // Sentiment Analysis
                 if (entry.aiSentimentAnalysis) {
                     const sentimentP = document.createElement('p');
-                    sentimentP.classList.add('ai-sentiment-analysis');
                     sentimentP.textContent = entry.aiSentimentAnalysis;
                     aiInsightsDiv.appendChild(sentimentP);
                 }
@@ -528,13 +526,13 @@ function loadJournalEntries() {
             controlsDiv.classList.add('entry-controls');
 
             const editButton = document.createElement('button');
-            editButton.classList.add('edit-button');
+            editButton.classList.add('edit-entry-button');
             editButton.textContent = 'Edit';
             editButton.dataset.id = entryId;
             editButton.addEventListener('click', () => handleEditEntry(entryId)); // Attach listener
 
             const deleteButton = document.createElement('button');
-            deleteButton.classList.add('delete-button');
+            deleteButton.classList.add('delete-entry-button');
             deleteButton.textContent = 'Delete';
             deleteButton.dataset.id = entryId;
             deleteButton.addEventListener('click', () => handleDeleteEntry(entryId)); // Attach listener
