@@ -32,6 +32,7 @@ const authError = document.getElementById('auth-error');
 
 const userInfo = document.getElementById('user-info');
 const userEmailDisplay = document.getElementById('user-email-display');
+const userEmailParagraph = userInfo.querySelector('p');
 const logoutButton = document.getElementById('logout-button');
 const journalForm = document.getElementById('journal-form');
 const journalEntryInput = document.getElementById('journal-entry');
@@ -154,7 +155,7 @@ auth.onAuthStateChanged(user => {
         // User is logged in
         console.log('Auth state changed: Logged in as', user.email);
         currentUser = user;
-        userEmailDisplay.textContent = user.email;
+        userEmailParagraph.innerHTML = '<i class="fas fa-user-circle"></i> Logged in as: <span id="user-email-display">' + user.email + '</span>';
         authContainer.style.display = 'none';
         journalContainer.style.display = 'block';
         loadJournalEntries(); // Load entries when user logs in
@@ -495,20 +496,20 @@ function loadJournalEntries() {
                     }
                 if (entry.aiObservations) {
                     insightsHtml += `<p class="ai-observation"><strong>Observations:</strong> ${entry.aiObservations}</p>`;
-                }
+                    }
                 if (entry.aiSentimentAnalysis) {
                     insightsHtml += `<p class="ai-sentiment-analysis"><strong>Sentiment:</strong> ${entry.aiSentimentAnalysis}</p>`;
-                }
+                    }
                 if (entry.aiReflectivePrompt) {
                     insightsHtml += `<p class="ai-reflective-prompt"><strong>Reflect:</strong> ${entry.aiReflectivePrompt}</p>`;
-                }
+                    }
                 if (entry.aiTimestamp) {
                     const aiTimeP = document.createElement('p');
                     aiTimeP.classList.add('ai-timestamp');
                     // Use the new formatting function for the AI analysis timestamp
                     aiTimeP.textContent = `Analyzed: ${formatUserFriendlyTimestamp(entry.aiTimestamp)}`;
                     aiInsightsDiv.appendChild(aiTimeP);
-                }
+                    }
                     aiInsightsDiv.innerHTML = insightsHtml;
             } else if (entry.timestamp) {
                 aiInsightsDiv.innerHTML = '<p class="ai-processing">Processing AI analysis...</p>';
@@ -522,13 +523,13 @@ function loadJournalEntries() {
 
             const editButton = document.createElement('button');
             editButton.classList.add('edit-entry-button');
-            editButton.textContent = 'Edit';
+            editButton.innerHTML = '<i class="fas fa-pencil-alt"></i> Edit';
             editButton.dataset.id = entryId;
             editButton.addEventListener('click', () => handleEditEntry(entryId)); // Attach listener
 
             const deleteButton = document.createElement('button');
             deleteButton.classList.add('delete-entry-button');
-            deleteButton.textContent = 'Delete';
+            deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
             deleteButton.dataset.id = entryId;
             deleteButton.addEventListener('click', () => handleDeleteEntry(entryId)); // Attach listener
 
