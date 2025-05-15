@@ -362,6 +362,7 @@ button:hover {
     #app {
         padding: 20px; /* Adjust container padding */
         max-width: 100%; /* Allow container to fill width */
+        border-radius: 12px; /* Ensure rounded corners on smaller screens */
         box-shadow: none; /* Optional: remove box shadow on very small screens */
     }
 
