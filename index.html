@@ -38,8 +38,10 @@
             <form id="journal-form">
                 <label for="journal-entry">Write your entry:</label>
                 <textarea id="journal-entry" placeholder="Write your entry..." rows="6"></textarea>
-                <button type="submit" id="save-entry-button">Save Entry</button>
-                <button type="button" id="cancel-edit-button" style="display: none;">Cancel Edit</button>
+                <div class="form-button-group">
+                    <button type="submit" id="save-entry-button">Save Entry</button>
+                    <button type="button" id="cancel-edit-button" style="display: none;">Cancel Edit</button>
+                </div>
                 <p id="entry-success" class="success-message"></p>
             </form>
             <hr>
