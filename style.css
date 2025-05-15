@@ -50,16 +50,16 @@ h1 {
 }
 
 h2 {
-    margin-bottom: 15px;
-    font-size: 1.6em;
+    margin-bottom: 20px; /* Increased bottom margin for more separation */
+    font-size: 1.8em; /* Increased font size for "Your Entries" */
 }
 
 h3.entry-ai-title { /* Specific styling for AI title moved from later */
     margin-top: 0;
     margin-bottom: 15px;
-    font-size: 1.4em;
+    font-size: 1.6em; /* Increased font size for AI title */
     color: var(--color-text-primary);
-    font-weight: 500; /* Slightly less than main headings */
+    font-weight: 600; /* Made AI title bolder */
 }
 
 input[type="email"],
@@ -174,7 +174,7 @@ button:hover {
 }
 
 .entry {
-    background-color: var(--color-container-background);
+    background-color: var(--color-border); /* Light Grayish Beige background for entry boxes */
     border: 1px solid var(--color-border);
     padding: 20px; /* Increased padding */
     margin-bottom: 20px; /* Increased margin */
@@ -190,15 +190,16 @@ button:hover {
 }
 
 .timestamp { /* General timestamp styling */
-    font-size: 0.85em;
+    font-size: 0.8em; /* Slightly reduced font size for less dominance */
     color: var(--color-text-secondary);
     display: block;
     margin-bottom: 10px;
+    margin-top: 5px; /* Added small top margin for spacing from content above */
 }
 
 .ai-insights {
-    background-color: #fAfBF8; /* Very light, almost white, derived from palette */
-    border: 1px solid var(--color-border);
+    background-color: var(--color-primary-accent); /* Muted Green/Sage background */
+    border: 1px solid var(--color-primary-accent-hover); /* Darker Sage border */
     padding: 15px; /* Increased padding */
     margin-top: 15px; /* Increased margin */
     border-radius: 6px; /* Softer radius */
@@ -206,13 +207,14 @@ button:hover {
 
 .ai-insights p {
     margin: 8px 0; /* Adjusted margin */
-    line-height: 1.5; /* Improved readability for AI content */
+    line-height: 1.6; /* Standardized line height with entry-content */
+    color: var(--color-container-background); /* Change text to white for contrast on green background */
 }
 
 .ai-greeting {
     font-style: italic;
-    color: var(--color-text-secondary); /* Use secondary text color */
     font-weight: 500;
+    /* color: var(--color-container-background); Inherited */
 }
 
 .ai-observation {
@@ -225,13 +227,12 @@ button:hover {
 
 .ai-observation p,
 .ai-sentiment-analysis p {
-    color: var(--color-text-primary);
+    /* color: var(--color-container-background); Inherited */
     font-weight: 500; /* Medium weight for better readability of these sections */
-    /* If only labels need to be bold, JS change is required to wrap labels */
 }
 
 .ai-reflective-prompt {
-    color: var(--color-text-primary); /* Changed to primary text color for contrast */
+    /* color: var(--color-container-background); Inherited */
     font-weight: 600; /* Bold for prompts */
     margin-top: 10px;
 }
@@ -242,19 +243,22 @@ button:hover {
 }
 
 .ai-timestamp {
-    font-size: 0.8em; /* Slightly smaller */
-    color: var(--color-text-secondary);
+    font-size: 0.75em; /* Slightly reduced for less dominance, consistent with .timestamp logic */
+    /* color: var(--color-container-background); Inherited - might need to be slightly off-white for subtlety */
+    opacity: 0.85; /* Make timestamp slightly less prominent on the green background */
     margin-top: 10px; /* Increased margin */
 }
 
 .ai-error {
-    color: var(--color-error);
-    font-weight: 500; /* Medium weight for errors */
+    /* color: var(--color-container-background); Inherited */
+    font-weight: 600; /* Bolder for errors to stand out */
+    /* Consider a very light pink or yellow if white on green is not distinct enough for error */
 }
 
 .ai-processing, .ai-unavailable {
-    color: var(--color-text-secondary);
+    /* color: var(--color-container-background); Inherited */
     font-style: italic;
+    opacity: 0.85; /* Make these less prominent */
 }
 
 .entry-controls {
