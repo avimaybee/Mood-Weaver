@@ -155,6 +155,7 @@ auth.onAuthStateChanged(user => {
         // User is logged in
         console.log('Auth state changed: Logged in as', user.email);
         currentUser = user;
+        // Revert to displaying full email
         userEmailParagraph.innerHTML = '<i class="fas fa-user-circle"></i> Logged in as: <span id="user-email-display">' + user.email + '</span>';
         authContainer.style.display = 'none';
         journalContainer.style.display = 'block';
@@ -180,6 +181,7 @@ auth.onAuthStateChanged(user => {
 if (auth.currentUser) {
     console.log('Initial check: User already logged in as', auth.currentUser.email);
     currentUser = auth.currentUser;
+    // Revert to displaying full email for initial display
     userEmailDisplay.textContent = currentUser.email;
     authContainer.style.display = 'none';
     journalContainer.style.display = 'block';
