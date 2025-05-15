@@ -224,22 +224,22 @@ function formatUserFriendlyTimestamp(firestoreTimestamp) {
 
 // Function to set the form to edit mode
 function setEditMode(entry) {
-    journalEntryInput.value = entry.content;
-    saveEntryButton.textContent = 'Update Entry';
-    cancelEditButton.style.display = 'inline-block';
-    journalForm.classList.add('edit-mode'); // Optional: for CSS styling
     editingEntryId = entry.id;
-    journalEntryInput.focus();
+    journalEntryInput.value = entry.content;
+    saveEntryButton.innerHTML = '<i class="fas fa-save"></i> Update Entry'; // Change button text and icon for Update
+    cancelEditButton.style.display = 'inline-block'; // Show cancel button
+    journalForm.classList.add('edit-mode'); // Add class for styling
+    entrySuccessMessage.textContent = ''; // Clear any success message
 }
 
 // Function to reset the form from edit mode
 function resetFormMode() {
-    journalEntryInput.value = '';
-    saveEntryButton.textContent = 'Save Entry';
-    cancelEditButton.style.display = 'none';
-    journalForm.classList.remove('edit-mode');
     editingEntryId = null;
-    entrySuccessMessage.textContent = ''; // Clear any messages
+    journalEntryInput.value = '';
+    saveEntryButton.innerHTML = '<i class="fas fa-save"></i> Save Entry'; // Revert button text and icon
+    cancelEditButton.style.display = 'none'; // Hide cancel button
+    journalForm.classList.remove('edit-mode'); // Remove class
+    entrySuccessMessage.textContent = ''; // Clear any success message
 }
 
 // Event listener for the Cancel Edit button
