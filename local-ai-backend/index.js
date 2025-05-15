@@ -21,10 +21,19 @@ app.use(express.json()); // Middleware to parse JSON request bodies
 
 // Endpoint to receive journal entry and return AI analysis
 app.post('/analyze-entry', async (req, res) => {
-  const { entryContent } = req.body;
+  const { entryContent, entryId, userId } = req.body;
 
-  if (!entryContent) {
-    return res.status(400).json({ error: 'Journal entry content is required.' });
+  // Log received data for debugging
+  console.log(`Received POST to /analyze-entry:`);
+  console.log(`   User ID: ${userId}`);
+  console.log(`   Entry ID: ${entryId}`);
+  console.log(`   Entry Content: ${entryContent ? entryContent.substring(0, 50) + '...' : 'N/A'}`);
+
+  if (!entryContent || !entryId || !userId) {
+    return res.status(400).json({ 
+        error: 'Journal entry content, entryId, and userId are required.',
+        received: { entryContent: !!entryContent, entryId: !!entryId, userId: !!userId }
+    });
   }
 
   try {
