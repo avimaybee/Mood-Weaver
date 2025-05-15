@@ -98,6 +98,10 @@ button {
     transition: background-color 0.2s ease-in-out; /* Smooth transition */
 }
 
+button i {
+    margin-right: 8px; /* Add space between icon and text */
+}
+
 button:hover {
     background-color: var(--color-primary-accent-hover);
 }
