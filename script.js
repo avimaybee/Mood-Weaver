@@ -58,6 +58,7 @@ let editingEntryId = null; // To store the ID of the entry being edited
 let selectedTags = []; // To hold tags for the current entry being created/edited
 const defaultTags = ['art', 'project', 'ideas', 'grocery', 'thoughts', 'poetry', 'remember']; // Default tags
 let loadedEntries = []; // To store the entries fetched from Firestore
+let activeFilterTags = []; // To store tags currently selected for filtering
 
 // --- Authentication Logic --- 
 
@@ -525,7 +526,10 @@ function loadJournalEntries() {
 
     entriesListener = entriesQuery.onSnapshot(snapshot => {
         console.log(`Received ${snapshot.docs.length} entries from Firestore.`);
-        displayEntries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        const entries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        loadedEntries = entries; // Store entries and display them
+        displayEntries(loadedEntries); // Display all loaded entries initially
+        renderFilterTags(); // Render filter tags after loading entries
     }, error => {
         console.error('Error fetching entries:', error);
         entriesList.innerHTML = '<p class="error-message">Could not load entries. Please refresh.</p>';
@@ -534,16 +538,26 @@ function loadJournalEntries() {
     console.log('Attached Firestore listener for entries.');
 }
 
-function displayEntries(entries) {
-    entriesList.innerHTML = ''; // Clear current entries
-    loadedEntries = entries; // Store the fetched entries
-    if (entries.length === 0) {
-        entriesList.innerHTML = '<p>No entries yet. Start writing!</p>';
-        // After displaying entries, update the available tags list
-        renderAvailableTags();
+function displayEntries(entriesToDisplay) {
+    entriesList.innerHTML = ''; // Clear current list
+
+    // Filter entries based on activeFilterTags
+    const filteredEntries = entriesToDisplay.filter(entry => {
+        if (activeFilterTags.length === 0) {
+            return true; // Show all entries if no filter is active
+        }
+        // Check if entry has ALL activeFilterTags
+        return activeFilterTags.every(filterTag => 
+            entry.tags && entry.tags.includes(filterTag)
+        );
+    });
+
+    if (filteredEntries.length === 0) {
+        entriesList.innerHTML = '<p>No entries found matching the selected tags.</p>';
         return;
     }
-    entries.forEach(entry => {
+
+    filteredEntries.forEach(entry => {
         const entryElement = document.createElement('div');
         entryElement.classList.add('entry');
         entryElement.dataset.id = entry.id;
@@ -645,7 +659,7 @@ function displayEntries(entries) {
     });
     
     // If the currently edited entry is no longer in the snapshot (e.g., deleted by another client), reset form.
-    if (editingEntryId && !entries.find(entry => entry.id === editingEntryId)) {
+    if (editingEntryId && !entriesToDisplay.find(entry => entry.id === editingEntryId)) {
         console.log(`Edited entry ${editingEntryId} no longer found. Resetting form.`);
         resetFormMode();
     }
@@ -694,4 +708,59 @@ function renderAvailableTags() {
         tagSpan.onclick = () => addTag(tag); // Add tag on click
         availableTagsDiv.appendChild(tagSpan);
     });
+}
+
+// Function to render filter tags
+function renderFilterTags() {
+    const filterTagsListDiv = document.getElementById('filter-tags-list'); // Use the correct ID
+    // Clear previous list
+    while (filterTagsListDiv.firstChild) {
+        filterTagsListDiv.removeChild(filterTagsListDiv.firstChild);
+    }
+
+    // Get all unique tags from loaded entries
+    const allUniqueTags = getAllExistingTags(); // Reuse the existing function
+
+    if (allUniqueTags.length === 0) {
+        filterTagsListDiv.innerHTML = '<p>No tags available for filtering.</p>';
+        return;
+    }
+
+    allUniqueTags.forEach(tag => {
+        const tagSpan = document.createElement('span');
+        tagSpan.classList.add('tag', 'filter-tag');
+        tagSpan.textContent = tag;
+
+        // Add click listener to toggle filter
+        tagSpan.addEventListener('click', () => {
+            toggleFilterTag(tag);
+        });
+
+        // Add 'selected' class if the tag is in activeFilterTags
+        if (activeFilterTags.includes(tag)) {
+            tagSpan.classList.add('selected');
+        }
+
+        filterTagsListDiv.appendChild(tagSpan);
+    });
+}
+
+// Function to toggle a tag in the active filter list
+function toggleFilterTag(tag) {
+    const index = activeFilterTags.indexOf(tag);
+    if (index > -1) {
+        // Tag is already in filter, remove it
+        activeFilterTags.splice(index, 1);
+    } else {
+        // Tag is not in filter, add it
+        activeFilterTags.push(tag);
+    }
+
+    console.log('Active filter tags:', activeFilterTags);
+
+    // Re-render filter tags to update selection style
+    renderFilterTags();
+
+    // Re-display entries with the new filter
+    displayEntries(loadedEntries); // Use the stored loadedEntries
 } 
