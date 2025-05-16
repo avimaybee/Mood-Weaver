@@ -55,6 +55,9 @@ const placeholderPhrases = [
 let currentUser = null;
 let entriesListener = null; // To hold the Firestore listener
 let editingEntryId = null; // To store the ID of the entry being edited
+let selectedTags = []; // To hold tags for the current entry being created/edited
+const defaultTags = ['art', 'project', 'ideas', 'grocery', 'thoughts', 'poetry', 'remember']; // Default tags
+let loadedEntries = []; // To store the entries fetched from Firestore
 
 // --- Authentication Logic --- 
 
@@ -246,6 +249,8 @@ function formatUserFriendlyTimestamp(firestoreTimestamp) {
 function setEditMode(entry) {
     editingEntryId = entry.id;
     journalEntryInput.value = entry.content;
+    selectedTags = entry.tags || [];
+    renderSelectedTags();
     saveEntryButton.innerHTML = '<i class="fas fa-save"></i> Update Entry'; // Change button text and icon for Update
     cancelEditButton.style.display = 'inline-block'; // Show cancel button
     journalForm.classList.add('edit-mode'); // Add class for styling
@@ -256,10 +261,14 @@ function setEditMode(entry) {
 function resetFormMode() {
     editingEntryId = null;
     journalEntryInput.value = '';
+    selectedTags = [];
+    renderSelectedTags();
     saveEntryButton.innerHTML = '<i class="fas fa-save"></i> Save Entry'; // Revert button text and icon
     cancelEditButton.style.display = 'none'; // Hide cancel button
     journalForm.classList.remove('edit-mode'); // Remove class
     entrySuccessMessage.textContent = ''; // Clear any success message
+    const randomIndex = Math.floor(Math.random() * placeholderPhrases.length);
+    journalEntryInput.placeholder = placeholderPhrases[randomIndex];
 }
 
 // Event listener for the Cancel Edit button
@@ -267,21 +276,69 @@ cancelEditButton.addEventListener('click', () => {
     resetFormMode();
 });
 
+// Function to render selected tags in the UI
+function renderSelectedTags() {
+    const selectedTagsDiv = document.getElementById('selected-tags');
+    selectedTagsDiv.innerHTML = '';
+    selectedTags.forEach(tag => {
+        const tagSpan = document.createElement('span');
+        tagSpan.classList.add('tag');
+        tagSpan.textContent = tag;
+        const removeTagSpan = document.createElement('span');
+        removeTagSpan.classList.add('remove-tag');
+        removeTagSpan.textContent = 'x';
+        removeTagSpan.onclick = () => removeTag(tag);
+        tagSpan.appendChild(removeTagSpan);
+        selectedTagsDiv.appendChild(tagSpan);
+    });
+}
+
+// Function to add a tag
+function addTag(tag) {
+    const lowerCaseTag = tag.toLowerCase().trim();
+    if (lowerCaseTag && !selectedTags.includes(lowerCaseTag)) {
+        selectedTags.push(lowerCaseTag);
+        renderSelectedTags();
+    }
+    document.getElementById('tag-input').value = ''; // Clear input after adding
+}
+
+// Function to remove a tag
+function removeTag(tag) {
+    selectedTags = selectedTags.filter(t => t !== tag);
+    renderSelectedTags();
+}
+
+// Event listener for tag input
+document.getElementById('tag-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault(); // Prevent form submission
+        const tagInput = document.getElementById('tag-input');
+        addTag(tagInput.value);
+    }
+});
+
+// Event listener for the add tag button
+document.getElementById('add-tag-button').addEventListener('click', () => {
+    const tagInput = document.getElementById('tag-input');
+    addTag(tagInput.value);
+});
+
 // Handle journal entry submission (Create or Update)
 journalForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const entryContent = journalEntryInput.value.trim();
     entrySuccessMessage.textContent = ''; 
-    saveEntryButton.disabled = true;
+    saveEntryButton.disabled = true; // Disable button immediately
 
     if (!entryContent) {
         alert('Please write something in your journal entry.');
-        saveEntryButton.disabled = false;
+        saveEntryButton.disabled = false; // Re-enable if validation fails
         return;
     }
     if (!currentUser) {
         alert('No user logged in. Please log in to save/update entries.');
-        saveEntryButton.disabled = false;
+        saveEntryButton.disabled = false; // Re-enable if no user
         console.error("Attempted to save/update entry without logged-in user.");
         return;
     }
@@ -294,8 +351,8 @@ journalForm.addEventListener('submit', async (e) => {
         try {
             await entryRef.update({
                 content: entryContent,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                // AI fields will be re-analyzed below
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                tags: selectedTags
             });
             console.log('Journal entry updated in Firestore with ID:', editingEntryId);
             entrySuccessMessage.textContent = 'Entry updated! Re-analyzing with AI...';
@@ -330,14 +387,14 @@ journalForm.addEventListener('submit', async (e) => {
                 });
                 entrySuccessMessage.textContent = 'Entry updated and AI re-analysis complete!';
             }
-            resetFormMode();
         } catch (error) {
             console.error('Error updating journal entry or during AI re-analysis:', error);
             entrySuccessMessage.textContent = 'Failed to update entry or AI re-analysis error.';
             // Optionally update Firestore with a general update error if needed
         } finally {
-            saveEntryButton.disabled = false;
+            saveEntryButton.disabled = false; // Ensure button is re-enabled
             setTimeout(() => { entrySuccessMessage.textContent = ''; }, 7000);
+            resetFormMode(); // Always reset form state
         }
 
     } else {
@@ -347,7 +404,7 @@ journalForm.addEventListener('submit', async (e) => {
         userId: currentUser.uid,
             content: entryContent,
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            // AI fields will be added after backend processing
+            tags: selectedTags
     };
     let newEntryRef;
         try {
@@ -402,9 +459,10 @@ journalForm.addEventListener('submit', async (e) => {
                 }).catch(updateError => console.error("Failed to update new entry with error state:", updateError));
                 }
         } finally {
-            saveEntryButton.disabled = false;
-            if (!editingEntryId) journalEntryInput.value = ''; // Clear only if not in edit mode (though resetFormMode handles it for edits)
+            saveEntryButton.disabled = false; // Ensure button is re-enabled
+            journalEntryInput.value = ''; // Always clear input after save attempt
             setTimeout(() => { entrySuccessMessage.textContent = ''; }, 7000);
+            resetFormMode(); // Always reset form state
         }
     }
 });
@@ -467,106 +525,173 @@ function loadJournalEntries() {
 
     entriesListener = entriesQuery.onSnapshot(snapshot => {
         console.log(`Received ${snapshot.docs.length} entries from Firestore.`);
-        entriesList.innerHTML = ''; 
-        if (snapshot.empty) {
-            entriesList.innerHTML = '<p>No entries yet. Write one above!</p>';
-            if (editingEntryId) resetFormMode(); // If editing and all entries are deleted, reset form
-            return;
-        }
-
-        snapshot.forEach(doc => {
-            const entry = doc.data();
-            const entryId = doc.id;
-            const entryDiv = document.createElement('div');
-            entryDiv.classList.add('entry');
-            entryDiv.dataset.id = entryId;
-
-            if (entry.aiTitle) {
-                const titleH3 = document.createElement('h3');
-                titleH3.classList.add('entry-ai-title');
-                titleH3.textContent = entry.aiTitle;
-                entryDiv.appendChild(titleH3);
-            }
-
-            const contentP = document.createElement('p');
-            contentP.classList.add('entry-content');
-            contentP.textContent = entry.content;
-            entryDiv.appendChild(contentP);
-
-            // Timestamp for the entry itself
-            const entryTimestampSpan = document.createElement('span');
-            entryTimestampSpan.classList.add('timestamp');
-            // Use the new formatting function for the entry timestamp
-            entryTimestampSpan.textContent = `Saved: ${entry.timestamp ? formatUserFriendlyTimestamp(entry.timestamp) : 'Saving...'}`;
-            entryDiv.appendChild(entryTimestampSpan);
-            
-            entryDiv.appendChild(document.createElement('hr')); // Visual separator
-
-            // AI Insights Section
-            const aiInsightsDiv = document.createElement('div');
-            aiInsightsDiv.classList.add('ai-insights');
-
-            if (entry.aiError) {
-                aiInsightsDiv.innerHTML = `<p class="ai-error"><strong>AI Analysis:</strong> Error - ${entry.aiError}</p>`;
-            } else if (entry.aiTitle || entry.aiGreeting) {
-                let insightsHtml = '';
-                if (entry.aiGreeting) {
-                    insightsHtml += `<p class="ai-greeting"><em>${entry.aiGreeting}</em></p>`;
-                    }
-                if (entry.aiObservations) {
-                    insightsHtml += `<p class="ai-observation"><strong>Observations:</strong> ${entry.aiObservations}</p>`;
-                    }
-                if (entry.aiSentimentAnalysis) {
-                    insightsHtml += `<p class="ai-sentiment-analysis"><strong>Sentiment:</strong> ${entry.aiSentimentAnalysis}</p>`;
-                    }
-                if (entry.aiReflectivePrompt) {
-                    insightsHtml += `<p class="ai-reflective-prompt"><strong>Reflect:</strong> ${entry.aiReflectivePrompt}</p>`;
-                    }
-                if (entry.aiTimestamp) {
-                    const aiTimeP = document.createElement('p');
-                    aiTimeP.classList.add('ai-timestamp');
-                    // Use the new formatting function for the AI analysis timestamp
-                    aiTimeP.textContent = `Analyzed: ${formatUserFriendlyTimestamp(entry.aiTimestamp)}`;
-                    aiInsightsDiv.appendChild(aiTimeP);
-                    }
-                    aiInsightsDiv.innerHTML = insightsHtml;
-            } else if (entry.timestamp) {
-                aiInsightsDiv.innerHTML = '<p class="ai-processing">Processing AI analysis...</p>';
-            } else {
-                aiInsightsDiv.innerHTML = '<p class="ai-unavailable">AI analysis not yet available.</p>';
-            }
-            entryDiv.appendChild(aiInsightsDiv);
-
-            const controlsDiv = document.createElement('div');
-            controlsDiv.classList.add('entry-controls');
-
-            const editButton = document.createElement('button');
-            editButton.classList.add('edit-entry-button');
-            editButton.innerHTML = '<i class="fas fa-pencil-alt"></i> Edit';
-            editButton.dataset.id = entryId;
-            editButton.addEventListener('click', () => handleEditEntry(entryId)); // Attach listener
-
-            const deleteButton = document.createElement('button');
-            deleteButton.classList.add('delete-entry-button');
-            deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
-            deleteButton.dataset.id = entryId;
-            deleteButton.addEventListener('click', () => handleDeleteEntry(entryId)); // Attach listener
-
-            controlsDiv.appendChild(editButton);
-            controlsDiv.appendChild(deleteButton);
-            entryDiv.appendChild(controlsDiv);
-
-            entriesList.appendChild(entryDiv);
-        });
-         // If the currently edited entry is no longer in the snapshot (e.g., deleted by another client), reset form.
-        if (editingEntryId && !snapshot.docs.find(doc => doc.id === editingEntryId)) {
-            console.log(`Edited entry ${editingEntryId} no longer found. Resetting form.`);
-            resetFormMode();
-        }
+        displayEntries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     }, error => {
         console.error('Error fetching entries:', error);
         entriesList.innerHTML = '<p class="error-message">Could not load entries. Please refresh.</p>';
         if (editingEntryId) resetFormMode(); // Also reset form on general fetch error if editing
     });
     console.log('Attached Firestore listener for entries.');
+}
+
+function displayEntries(entries) {
+    entriesList.innerHTML = ''; // Clear current entries
+    loadedEntries = entries; // Store the fetched entries
+    if (entries.length === 0) {
+        entriesList.innerHTML = '<p>No entries yet. Start writing!</p>';
+        // After displaying entries, update the available tags list
+        renderAvailableTags();
+        return;
+    }
+    entries.forEach(entry => {
+        const entryElement = document.createElement('div');
+        entryElement.classList.add('entry');
+        entryElement.dataset.id = entry.id;
+
+        if (entry.aiTitle) {
+            const titleH3 = document.createElement('h3');
+            titleH3.classList.add('entry-ai-title');
+            titleH3.textContent = entry.aiTitle;
+            entryElement.appendChild(titleH3);
+        }
+
+        const contentDiv = document.createElement('div');
+        contentDiv.classList.add('entry-content');
+        contentDiv.innerHTML = entry.content.replace(/\n/g, '<br>'); // Use innerHTML to preserve line breaks
+        entryElement.appendChild(contentDiv);
+
+        // Timestamp for the entry itself
+        const entryTimestampSpan = document.createElement('span');
+        entryTimestampSpan.classList.add('timestamp');
+        // Use the new formatting function for the entry timestamp
+        entryTimestampSpan.textContent = `Saved: ${entry.timestamp ? formatUserFriendlyTimestamp(entry.timestamp) : 'Saving...'}`;
+        entryElement.appendChild(entryTimestampSpan);
+
+        // Display tags
+        let tagsDiv = null; // Initialize tagsDiv to null
+        if (entry.tags && entry.tags.length > 0) {
+            tagsDiv = document.createElement('div');
+            tagsDiv.classList.add('entry-tags');
+            tagsDiv.innerHTML = entry.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+            // No longer appending tagsDiv directly here
+        }
+        
+        entryElement.appendChild(document.createElement('hr')); // Visual separator
+
+        // AI Insights Section
+        const aiInsightsDiv = document.createElement('div');
+        aiInsightsDiv.classList.add('ai-insights');
+
+        if (entry.aiError) {
+            aiInsightsDiv.innerHTML = `<p class="ai-error"><strong>AI Analysis:</strong> Error - ${entry.aiError}</p>`;
+        } else if (entry.aiTitle || entry.aiGreeting) {
+            let insightsHtml = '';
+            if (entry.aiGreeting) {
+                insightsHtml += `<p class="ai-greeting"><em>${entry.aiGreeting}</em></p>`;
+                }
+            if (entry.aiObservations) {
+                insightsHtml += `<p class="ai-observation"><strong>Observations:</strong> ${entry.aiObservations}</p>`;
+                }
+            if (entry.aiSentimentAnalysis) {
+                insightsHtml += `<p class="ai-sentiment-analysis"><strong>Sentiment:</strong> ${entry.aiSentimentAnalysis}</p>`;
+                }
+            if (entry.aiReflectivePrompt) {
+                insightsHtml += `<p class="ai-reflective-prompt"><strong>Reflect:</strong> ${entry.aiReflectivePrompt}</p>`;
+                }
+            insightsHtml += '<p class="ai-timestamp">' + (entry.aiTimestamp ? `Analyzed: ${formatUserFriendlyTimestamp(entry.aiTimestamp)}` : 'Analyzing...') + '</p>';
+            aiInsightsDiv.innerHTML = insightsHtml;
+        } else if (entry.timestamp) { // Check if there's at least a timestamp to indicate processing
+             aiInsightsDiv.innerHTML = '<p class="ai-processing">Processing AI analysis...</p>';
+        } else {
+            aiInsightsDiv.innerHTML = '<p class="ai-unavailable">AI analysis not yet available.</p>';
+        }
+
+        entryElement.appendChild(aiInsightsDiv);
+
+        const controlsDiv = document.createElement('div');
+        controlsDiv.classList.add('entry-controls');
+
+        const editButton = document.createElement('button');
+        editButton.classList.add('edit-entry-button');
+        editButton.innerHTML = '<i class="fas fa-pencil-alt"></i> Edit';
+        editButton.dataset.id = entry.id;
+        editButton.addEventListener('click', () => handleEditEntry(entry.id)); // Attach listener
+
+        const deleteButton = document.createElement('button');
+        deleteButton.classList.add('delete-entry-button');
+        deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
+        deleteButton.dataset.id = entry.id;
+        deleteButton.addEventListener('click', () => handleDeleteEntry(entry.id)); // Attach listener
+
+        controlsDiv.appendChild(editButton);
+        controlsDiv.appendChild(deleteButton);
+
+        // Create a container for tags and controls
+        const bottomRowDiv = document.createElement('div');
+        bottomRowDiv.classList.add('entry-bottom-row');
+
+        // Append tagsDiv if it was created
+        if (tagsDiv) {
+            bottomRowDiv.appendChild(tagsDiv);
+        }
+
+        // Append controlsDiv
+        bottomRowDiv.appendChild(controlsDiv);
+
+        // Append the bottomRowDiv to the main entry element
+        entryElement.appendChild(bottomRowDiv);
+
+        entriesList.appendChild(entryElement);
+    });
+    
+    // If the currently edited entry is no longer in the snapshot (e.g., deleted by another client), reset form.
+    if (editingEntryId && !entries.find(entry => entry.id === editingEntryId)) {
+        console.log(`Edited entry ${editingEntryId} no longer found. Resetting form.`);
+        resetFormMode();
+    }
+
+    // After displaying entries, update the available tags list
+    renderAvailableTags();
+}
+
+// Helper function to get all unique tags from currently displayed entries
+function getAllExistingTags() {
+    const existingTags = [];
+    loadedEntries.forEach(entry => {
+        if (entry.tags && Array.isArray(entry.tags)) {
+            entry.tags.forEach(tag => {
+                if (!existingTags.includes(tag)) {
+                    existingTags.push(tag);
+                }
+            });
+        }
+    });
+    return existingTags;
+}
+
+// Function to collect and render available tags (defaults + existing)
+function renderAvailableTags() {
+    const availableTagsDiv = document.getElementById('available-tags');
+    // Clear previous list more explicitly
+    while (availableTagsDiv.firstChild) {
+        availableTagsDiv.removeChild(availableTagsDiv.firstChild);
+    }
+
+    // Combine default tags and unique tags from loaded entries
+    const allUniqueTags = [...new Set([...defaultTags, ...getAllExistingTags()])];
+
+    console.log('Rendering available tags:', allUniqueTags); // Log tags being rendered
+
+    if (allUniqueTags.length === 0) {
+        availableTagsDiv.innerHTML = '<p>No available tags yet.</p>';
+        return;
+    }
+
+    allUniqueTags.forEach(tag => {
+        const tagSpan = document.createElement('span');
+        tagSpan.classList.add('tag', 'available-tag'); // Add available-tag class for specific styling/handling
+        tagSpan.textContent = tag;
+        tagSpan.onclick = () => addTag(tag); // Add tag on click
+        availableTagsDiv.appendChild(tagSpan);
+    });
 } 

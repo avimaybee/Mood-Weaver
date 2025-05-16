@@ -89,7 +89,7 @@ textarea:focus {
 }
 
 button {
-    background-color: var(--color-primary-accent);
+    background-color: #9cb69d; /* Using the darker hover color for more saturation */
     color: var(--color-container-background); /* White text on accent buttons */
     padding: 14px 20px; /* Adjusted padding */
     border: none;
@@ -155,6 +155,101 @@ button:hover {
     margin-bottom: 25px; /* Increased margin */
 }
 
+/* Tag input area styles */
+#tag-input-area {
+    margin-bottom: 15px;
+}
+
+#tag-input-area label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+#tag-input-area .tag-input-container {
+    display: flex;
+    gap: 10px; /* Space between input and button */
+    align-items: center; /* Vertically align items */
+    margin-bottom: 10px;
+}
+
+#tag-input-area .tag-input-container input[type="text"] {
+    flex-grow: 1; /* Allow input to fill available space */
+    margin-bottom: 0; /* Remove bottom margin as handled by container */
+}
+
+#add-tag-button {
+    width: auto; /* Allow button to size based on content */
+    padding: 10px 15px; /* Adjust padding for size */
+    font-size: 16px; /* Adjust font size */
+    margin-bottom: 0; /* Remove bottom margin */
+    background-color: var(--color-primary-accent); /* Use primary accent color */
+    color: var(--color-container-background); /* White icon */
+    border-radius: 4px; /* Match input border-radius */
+    flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+#add-tag-button:hover {
+    background-color: var(--color-primary-accent-hover);
+}
+
+#tag-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: var(--font-primary);
+    font-size: 16px;
+}
+
+#tag-input:focus {
+    outline: none;
+    border-color: var(--color-primary-accent-hover);
+    box-shadow: 0 0 0 3px rgba(176, 196, 177, 0.4);
+}
+
+#selected-tags,
+#suggested-tags {
+    margin-top: 5px;
+}
+
+#available-tags {
+    margin-top: 10px;
+    border-top: 1px solid var(--color-border);
+    padding-top: 10px;
+}
+
+.available-tags .tag {
+    cursor: pointer;
+    background-color: var(--color-border); /* Use a neutral background */
+    color: var(--color-text-primary); /* Use primary text color */
+    transition: background-color 0.2s ease-in-out;
+}
+
+.available-tags .tag:hover {
+    background-color: var(--color-primary-accent); /* Highlight on hover */
+    color: var(--color-container-background); /* White text on hover */
+}
+
+.tag {
+    display: inline-block;
+    background-color: var(--color-primary-accent);
+    color: var(--color-container-background);
+    padding: 5px 10px;
+    border-radius: 15px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+}
+
+.tag .remove-tag {
+    margin-left: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
 #entries-list .entry p { /* This might be redundant if .entry styling is comprehensive */
     margin: 8px 0; /* Adjusted margin */
 }
@@ -195,6 +290,27 @@ button:hover {
 .entry:hover {
      transform: translateY(-3px); /* Lift effect on hover */
      box-shadow: 0 6px 16px var(--shadow-color); /* Slightly larger shadow on hover */
+}
+
+.entry-tags {
+    margin-top: 15px; /* Increased margin from content */
+    font-size: 0.9em;
+    color: var(--color-text-secondary);
+    /* font-style: italic; */ /* Removed italic */
+    border-top: 1px solid var(--color-border); /* Add a separator */
+    padding-top: 15px; /* Padding above tags */
+}
+
+.entry-tags .tag {
+    display: inline-block;
+    background-color: var(--color-primary-accent);
+    color: var(--color-container-background);
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    font-size: 0.9em; /* Keep tag font size consistent */
+    font-style: normal; /* Ensure tags themselves are not italic */
 }
 
 .entry-content {
@@ -277,7 +393,20 @@ button:hover {
     display: flex;
     justify-content: flex-end; /* Align buttons to the right */
     gap: 10px; /* Space between buttons */
-    margin-top: 20px; /* Increased margin */
+    margin-top: 0; /* Remove top margin as spacing is handled by .entry-bottom-row */
+}
+
+.entry-bottom-row {
+    display: flex;
+    justify-content: space-between; /* Align items to left and right */
+    align-items: center; /* Vertically align items */
+    margin-top: 15px; /* Add some space above this row */
+}
+
+.entry-tags {
+    margin-top: 0; /* Remove top margin as spacing is handled by .entry-bottom-row */
+    border-top: none; /* Remove border as it's not needed here */
+    padding-top: 0; /* Remove padding as it's not needed here */
 }
 
 .edit-entry-button, .delete-entry-button {
@@ -333,7 +462,7 @@ button:hover {
 }
 
 .form-button-group #save-entry-button {
-    /* Specific styles if needed, otherwise inherits from button */
+    /* No specific background color needed here, inherits from button */
 }
 
 .form-button-group #cancel-edit-button {
