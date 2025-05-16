@@ -566,4 +566,44 @@ button:hover {
         padding: 12px 15px; /* Ensure form buttons are still reasonably sized */
         font-size: 16px;
     }
+}
+
+/* Tag Filtering Area Styles */
+#tag-filter-area {
+    margin-bottom: 20px; /* Space below the filter area */
+    padding: 15px; /* Padding inside the filter area */
+    background-color: #f8f8f8; /* Light background */
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}
+
+#tag-filter-area h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: var(--color-text-primary);
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+#filter-tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; /* Space between filter tags */
+}
+
+#filter-tags-list .tag {
+    cursor: pointer;
+    background-color: var(--color-border); /* Neutral background for filter tags */
+    color: var(--color-text-primary);
+    transition: background-color 0.2s ease-in-out;
+}
+
+#filter-tags-list .tag.selected {
+    background-color: var(--color-primary-accent); /* Highlight selected filter tags */
+    color: var(--color-container-background);
+}
+
+#filter-tags-list .tag:hover:not(.selected) {
+    background-color: var(--color-primary-accent-hover); /* Hover effect for unselected tags */
+    color: var(--color-container-background);
 } 
