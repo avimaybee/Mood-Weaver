@@ -590,8 +590,6 @@ function displayEntries(entriesToDisplay) {
             // No longer appending tagsDiv directly here
         }
         
-        entryElement.appendChild(document.createElement('hr')); // Visual separator
-
         // AI Insights Section
         const aiInsightsContainer = document.createElement('div'); // New container for AI insights
         aiInsightsContainer.classList.add('ai-insights-container');
@@ -644,18 +642,30 @@ function displayEntries(entriesToDisplay) {
         controlsDiv.appendChild(editButton);
         controlsDiv.appendChild(deleteButton);
 
-        // Add AI Toggle button/icon
+        // Add AI Toggle button/icon and label
         const aiToggleButton = document.createElement('div');
         aiToggleButton.classList.add('ai-toggle-button');
-        aiToggleButton.innerHTML = '<i class="fas fa-chevron-down"></i>'; // Initial icon (down arrow)
-        aiToggleButton.title = 'Toggle AI Analysis';
+        // Create a container for the icon and the text label
+        const aiToggleContent = document.createElement('span');
+        aiToggleContent.classList.add('ai-toggle-content');
+        aiToggleContent.innerHTML = '<i class="fas fa-chevron-down"></i> <i class="fas fa-sparkles ai-icon-sparkles"></i>'; // Down arrow icon and Sparkles icon
+
+        aiToggleButton.appendChild(aiToggleContent);
+
+        aiToggleButton.title = 'Toggle AI Analysis Details'; // Update tooltip
         aiToggleButton.addEventListener('click', () => {
             entryElement.classList.toggle('expanded');
-            // Change icon based on state
+            // Change icon based on state within the content span
+            const icon = aiToggleButton.querySelector('i');
+            const sparklesIcon = aiToggleButton.querySelector('.ai-icon-sparkles');
             if (entryElement.classList.contains('expanded')) {
-                aiToggleButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+                sparklesIcon.style.display = 'none'; // Hide sparkles when expanded
             } else {
-                aiToggleButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+                sparklesIcon.style.display = 'inline'; // Show sparkles when collapsed
             }
         });
 
