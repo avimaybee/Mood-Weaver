@@ -41,7 +41,20 @@
             <h2>My Journal</h2>
             <form id="journal-form">
                 <label for="journal-entry">Write your entry:</label>
-                <textarea id="journal-entry" placeholder="Write your entry..." rows="6"></textarea>
+                <textarea id="journal-entry" placeholder="Start typing your thoughts here..." rows="6"></textarea>
+
+                <!-- Tag input area -->
+                <div id="tag-input-area">
+                    <label for="tag-input">Tags:</label>
+                    <div class="tag-input-container">
+                        <input type="text" id="tag-input" placeholder="Add tags (e.g., project, ideas)">
+                        <button type="button" id="add-tag-button"><i class="fas fa-check"></i></button>
+                    </div>
+                    <div id="suggested-tags"></div> <!-- For AI suggestions later -->
+                    <div id="selected-tags"></div>
+                    <div id="available-tags" class="available-tags"></div> <!-- Container for default and existing tags -->
+                </div>
+
                 <div class="form-button-group">
                     <button type="submit" id="save-entry-button"><i class="fas fa-save"></i> Save Entry</button>
                     <button type="button" id="cancel-edit-button" style="display: none;"><i class="fas fa-times"></i> Cancel Edit</button>
