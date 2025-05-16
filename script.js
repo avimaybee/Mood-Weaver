@@ -582,12 +582,10 @@ function displayEntries(entriesToDisplay) {
         entryElement.appendChild(entryTimestampSpan);
 
         // Display tags
-        let tagsDiv = null; // Initialize tagsDiv to null
+        const tagsDiv = document.createElement('div');
+        tagsDiv.classList.add('entry-tags');
         if (entry.tags && entry.tags.length > 0) {
-            tagsDiv = document.createElement('div');
-            tagsDiv.classList.add('entry-tags');
             tagsDiv.innerHTML = entry.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
-            // No longer appending tagsDiv directly here
         }
         
         // AI Insights Section
@@ -648,7 +646,7 @@ function displayEntries(entriesToDisplay) {
         // Create a container for the icon and the text label
         const aiToggleContent = document.createElement('span');
         aiToggleContent.classList.add('ai-toggle-content');
-        aiToggleContent.innerHTML = '<i class="fas fa-chevron-down"></i> <i class="fas fa-sparkles ai-icon-sparkles"></i>'; // Down arrow icon and Sparkles icon
+        aiToggleContent.innerHTML = '<i class="fas fa-chevron-down"></i> <i class="fas fa-star ai-icon-star"></i>'; // Down arrow icon and Star icon
 
         aiToggleButton.appendChild(aiToggleContent);
 
@@ -656,33 +654,66 @@ function displayEntries(entriesToDisplay) {
         aiToggleButton.addEventListener('click', () => {
             entryElement.classList.toggle('expanded');
             // Change icon based on state within the content span
-            const icon = aiToggleButton.querySelector('i');
-            const sparklesIcon = aiToggleButton.querySelector('.ai-icon-sparkles');
-            if (entryElement.classList.contains('expanded')) {
-                icon.classList.remove('fa-chevron-down');
-                icon.classList.add('fa-chevron-up');
-                sparklesIcon.style.display = 'none'; // Hide sparkles when expanded
-            } else {
-                icon.classList.remove('fa-chevron-up');
-                icon.classList.add('fa-chevron-down');
-                sparklesIcon.style.display = 'inline'; // Show sparkles when collapsed
-            }
-        });
+            const icon = aiToggleButton.querySelector('i.fa-chevron-down, i.fa-chevron-up'); // Select the arrow icon
+            const starIcon = aiToggleButton.querySelector('.ai-icon-star'); // Select the star icon
+
+             if (entryElement.classList.contains('expanded')) {
+                 icon.classList.remove('fa-chevron-down');
+                 icon.classList.add('fa-chevron-up');
+             } else {
+                 icon.classList.remove('fa-chevron-up');
+                 icon.classList.add('fa-chevron-down');
+              }
+          });
 
         // Create a container for tags and controls
         const bottomRowDiv = document.createElement('div');
         bottomRowDiv.classList.add('entry-bottom-row');
 
-        // Append tagsDiv if it was created
-        if (tagsDiv) {
+        // Ensure controlsDiv is appended first
+        if (controlsDiv.parentNode !== bottomRowDiv) {
+            bottomRowDiv.appendChild(controlsDiv);
+        }
+
+        // Ensure aiToggleButton is appended second
+        if (aiToggleButton.parentNode !== bottomRowDiv) {
+             // Remove tagsDiv if it's currently before aiToggleButton
+             if (tagsDiv.parentNode === bottomRowDiv && tagsDiv.previousSibling === aiToggleButton) {
+                 bottomRowDiv.insertBefore(aiToggleButton, tagsDiv);
+             } else if (tagsDiv.parentNode !== bottomRowDiv || !tagsDiv.previousSibling) {
+                 // If tagsDiv is not parented or is at the start, just append aiToggleButton
+                 bottomRowDiv.appendChild(aiToggleButton);
+             }
+        }
+
+        // Ensure tagsDiv is appended third (or last)
+        if (tagsDiv.parentNode !== bottomRowDiv) {
             bottomRowDiv.appendChild(tagsDiv);
         }
 
-        // Append controlsDiv
-        bottomRowDiv.appendChild(controlsDiv);
+        // Correct order if elements are already parented but in the wrong sequence
+        const children = Array.from(bottomRowDiv.children);
+        const correctOrder = [controlsDiv, tagsDiv, aiToggleButton];
 
-        // Append the AI Toggle button to the bottom row
-        bottomRowDiv.appendChild(aiToggleButton);
+        let needsReorder = false;
+        if (children.length === correctOrder.length) {
+            for (let i = 0; i < children.length; i++) {
+                if (children[i] !== correctOrder[i]) {
+                    needsReorder = true;
+                    break;
+                }
+            }
+        } else {
+             needsReorder = true; // Different number of children means incorrect state
+        }
+
+        if (needsReorder) {
+            console.log("Reordering elements in bottomRowDiv.");
+            bottomRowDiv.innerHTML = ''; // Clear existing children
+            bottomRowDiv.appendChild(controlsDiv);
+            bottomRowDiv.appendChild(tagsDiv);
+            bottomRowDiv.appendChild(aiToggleButton);
+        }
 
         // Append the bottomRowDiv to the main entry element
         entryElement.appendChild(bottomRowDiv);
