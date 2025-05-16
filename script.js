@@ -593,6 +593,9 @@ function displayEntries(entriesToDisplay) {
         entryElement.appendChild(document.createElement('hr')); // Visual separator
 
         // AI Insights Section
+        const aiInsightsContainer = document.createElement('div'); // New container for AI insights
+        aiInsightsContainer.classList.add('ai-insights-container');
+
         const aiInsightsDiv = document.createElement('div');
         aiInsightsDiv.classList.add('ai-insights');
 
@@ -620,7 +623,8 @@ function displayEntries(entriesToDisplay) {
             aiInsightsDiv.innerHTML = '<p class="ai-unavailable">AI analysis not yet available.</p>';
         }
 
-        entryElement.appendChild(aiInsightsDiv);
+        aiInsightsContainer.appendChild(aiInsightsDiv);
+        entryElement.appendChild(aiInsightsContainer); // Append the new container
 
         const controlsDiv = document.createElement('div');
         controlsDiv.classList.add('entry-controls');
@@ -640,6 +644,21 @@ function displayEntries(entriesToDisplay) {
         controlsDiv.appendChild(editButton);
         controlsDiv.appendChild(deleteButton);
 
+        // Add AI Toggle button/icon
+        const aiToggleButton = document.createElement('div');
+        aiToggleButton.classList.add('ai-toggle-button');
+        aiToggleButton.innerHTML = '<i class="fas fa-chevron-down"></i>'; // Initial icon (down arrow)
+        aiToggleButton.title = 'Toggle AI Analysis';
+        aiToggleButton.addEventListener('click', () => {
+            entryElement.classList.toggle('expanded');
+            // Change icon based on state
+            if (entryElement.classList.contains('expanded')) {
+                aiToggleButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
+            } else {
+                aiToggleButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+            }
+        });
+
         // Create a container for tags and controls
         const bottomRowDiv = document.createElement('div');
         bottomRowDiv.classList.add('entry-bottom-row');
@@ -651,6 +670,9 @@ function displayEntries(entriesToDisplay) {
 
         // Append controlsDiv
         bottomRowDiv.appendChild(controlsDiv);
+
+        // Append the AI Toggle button to the bottom row
+        bottomRowDiv.appendChild(aiToggleButton);
 
         // Append the bottomRowDiv to the main entry element
         entryElement.appendChild(bottomRowDiv);
