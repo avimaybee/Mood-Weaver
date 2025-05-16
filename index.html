@@ -62,12 +62,14 @@
                 <p id="entry-success" class="success-message"></p>
             </form>
             <hr>
-            <h3>Your Entries:</h3>
-            <!-- Tag Filtering Area -->
-            <div id="tag-filter-area">
-                <h4>Filter by Tags:</h4>
-                <div id="filter-tags-list"></div>
+            <!-- Integrated Search and Filter Area -->
+            <div id="search-filter-area">
+                <label for="search-input">Search & Filter:</label>
+                <input type="text" id="search-input" placeholder="Search entries or filter by tags...">
+                <div id="filter-tags-list"></div> <!-- Keep the filter tags list here -->
             </div>
+            <h3>Your Entries:</h3>
+            
             <div id="entries-list">
                 <!-- Entries will be dynamically loaded here -->
             </div>
