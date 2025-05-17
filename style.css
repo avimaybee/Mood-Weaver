@@ -483,7 +483,6 @@ button:hover {
 
 .form-button-group button {
     flex-grow: 1; /* Allow buttons to grow and fill space */
-    /* width: auto; Removed, flex-grow handles it */
 }
 
 .form-button-group #save-entry-button {

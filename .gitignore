@@ -28,4 +28,7 @@ node_modules/
 
 # Task files
 tasks.json
-tasks/ 
+tasks/
+
+# Firebase config file
+firebase-config.js 
