@@ -127,10 +127,30 @@ export function displayEntries(entriesToDisplay, activeFilterTags, searchInput, 
         contentTextarea.value = entry.content || '';
         editModeDiv.appendChild(contentTextarea);
 
-        // Tag editing area (will implement details later)
+        // Tag editing area
         const editTagsArea = document.createElement('div');
         editTagsArea.classList.add('edit-tags-area');
-        editTagsArea.innerHTML = '<p>Edit Tags:</p><!-- Tag input and selected tags will go here -->';
+        editTagsArea.innerHTML = '<p>Edit Tags:</p>';
+        // Add input for new tags in edit mode
+        const editTagInputContainer = document.createElement('div');
+        editTagInputContainer.classList.add('tag-input-container'); // Reuse existing class for styling
+        const editTagInput = document.createElement('input');
+        editTagInput.type = 'text';
+        editTagInput.classList.add('edit-tag-input');
+        editTagInput.placeholder = 'Add tags...';
+        const addEditTagButton = document.createElement('button');
+        addEditTagButton.type = 'button';
+        addEditTagButton.classList.add('button', 'is-small');
+        addEditTagButton.innerHTML = '<i class="fas fa-check"></i>';
+        editTagInputContainer.appendChild(editTagInput);
+        editTagInputContainer.appendChild(addEditTagButton);
+        editTagsArea.appendChild(editTagInputContainer);
+
+        // Area to display tags currently selected for this entry in edit mode
+        const currentEditTagsDiv = document.createElement('div');
+        currentEditTagsDiv.classList.add('current-edit-tags');
+        editTagsArea.appendChild(currentEditTagsDiv);
+
         editModeDiv.appendChild(editTagsArea);
 
         // Controls for both modes
@@ -171,8 +191,16 @@ export function displayEntries(entriesToDisplay, activeFilterTags, searchInput, 
         saveButton.addEventListener('click', async () => {
             console.log('Save button clicked for entry:', entry.id);
             console.log('currentUser in save button listener:', currentUser);
-            // Pass the necessary arguments to saveEntryChanges, including currentUser
-            await saveEntryChanges(entry.id, entryElement, db, currentUser, getLoadedEntriesCallback, displayEntriesCallback, searchInput);
+            // Pass the necessary arguments to saveEntryChanges, including currentUser and the updated tags
+            const updatedContent = contentTextarea.value.trim();
+            const updatedTitle = titleInput.value.trim();
+            // Get tags from the edit tags area
+            const updatedTags = [];
+            currentEditTagsDiv.querySelectorAll('.tag').forEach(tagSpan => {
+                updatedTags.push(tagSpan.textContent.replace('x', '').trim()); // Extract tag text and remove 'x'
+            });
+
+            await saveEntryChanges(entry.id, entryElement, db, currentUser, getLoadedEntriesCallback, displayEntriesCallback, searchInput, updatedContent, updatedTitle, updatedTags);
         });
 
         const cancelButton = document.createElement('button');
@@ -269,124 +297,200 @@ export function formatUserFriendlyTimestamp(firestoreTimestamp) {
     }
 }
 
-// Function to enter edit mode
-function enterEditMode(entryElement, entry) {
-    const displayMode = entryElement.querySelector('.entry-view-mode');
-    const editMode = entryElement.querySelector('.entry-edit-mode');
-    const editButton = entryElement.querySelector('.edit-entry-button');
-    const deleteButton = entryElement.querySelector('.delete-entry-button');
-    const saveButton = entryElement.querySelector('.save-edit-button');
-    const cancelButton = entryElement.querySelector('.cancel-edit-button');
+// Function to render tags in the current edit tags area
+function renderCurrentEditTags(tags, currentEditTagsDiv) {
+    currentEditTagsDiv.innerHTML = '';
+    tags.forEach(tag => {
+        const tagSpan = document.createElement('span');
+        tagSpan.classList.add('tag');
+        tagSpan.textContent = tag;
+        const removeTagSpan = document.createElement('span');
+        removeTagSpan.classList.add('remove-tag');
+        removeTagSpan.textContent = 'x';
+        removeTagSpan.onclick = () => removeTagFromEdit(tag, currentEditTagsDiv); // Add remove functionality
+        tagSpan.appendChild(removeTagSpan);
+        currentEditTagsDiv.appendChild(tagSpan);
+    });
+}
 
-    console.log('Entering edit mode for entry:', entry.id);
-    console.log('Found saveButton:', saveButton);
-    console.log('Found cancelButton:', cancelButton);
+// Function to add a tag to the current edit tags list
+function addTagToEdit(tag, currentEditTagsDiv, editTagInput) {
+    const lowerCaseTag = tag.toLowerCase().trim();
+    // Get current tags from the display area
+    const currentTags = [];
+     currentEditTagsDiv.querySelectorAll('.tag').forEach(tagSpan => {
+        currentTags.push(tagSpan.textContent.replace('x', '').trim());
+    });
 
-    // Hide display mode, show edit mode
-    if (displayMode) displayMode.style.display = 'none';
-    if (editMode) editMode.style.display = 'block';
-
-    // Hide view mode buttons, show edit mode buttons
-    if (editButton) editButton.style.display = 'none';
-    if (deleteButton) deleteButton.style.display = 'none';
-    if (saveButton) saveButton.style.display = 'inline-block'; // Use inline-block as they are buttons
-    if (cancelButton) cancelButton.style.display = 'inline-block'; // Use inline-block
-
-    // Populate edit fields
-    const editTitleInput = editMode.querySelector('.edit-title-input');
-    const editContentTextarea = editMode.querySelector('.edit-content-textarea');
-    const editTagsContainer = editMode.querySelector('.edit-tags-area');
-
-    if (editTitleInput) editTitleInput.value = entry.aiTitle || '';
-    if (editContentTextarea) editContentTextarea.value = entry.content || '';
-
-    // Handle tags: create input field and populate with current tags
-    if (editTagsContainer) {
-        editTagsContainer.innerHTML = '<p>Edit Tags:</p>'; // Clear existing content and add label
-        const tagsInput = document.createElement('input');
-        tagsInput.type = 'text';
-        tagsInput.className = 'edit-tags';
-        tagsInput.value = entry.tags ? entry.tags.join(', ') : ''; // Join tags with comma
-        tagsInput.placeholder = 'Enter tags, separated by commas';
-        editTagsContainer.appendChild(tagsInput);
+    if (lowerCaseTag && !currentTags.includes(lowerCaseTag)) {
+        currentTags.push(lowerCaseTag);
+        renderCurrentEditTags(currentTags, currentEditTagsDiv); // Re-render the display area
     }
+     editTagInput.value = ''; // Clear input
 }
 
-// Function to cancel edit mode
-function cancelEditMode(entryElement) {
-    const displayMode = entryElement.querySelector('.entry-view-mode');
-    const editMode = entryElement.querySelector('.entry-edit-mode');
-    const editButton = entryElement.querySelector('.edit-entry-button');
-    const deleteButton = entryElement.querySelector('.delete-entry-button');
-    const saveButton = entryElement.querySelector('.save-edit-button');
-    const cancelButton = entryElement.querySelector('.cancel-edit-button');
+// Function to remove a tag from the current edit tags list
+function removeTagFromEdit(tag, currentEditTagsDiv) {
+     const currentTags = [];
+     currentEditTagsDiv.querySelectorAll('.tag').forEach(tagSpan => {
+        currentTags.push(tagSpan.textContent.replace('x', '').trim());
+    });
 
-    // Hide edit mode, show display mode
-    if (editMode) editMode.style.display = 'none';
-    if (displayMode) displayMode.style.display = 'block';
-
-    // Hide edit mode buttons, show view mode buttons
-    if (saveButton) saveButton.style.display = 'none';
-    if (cancelButton) cancelButton.style.display = 'none';
-    if (editButton) editButton.style.display = 'inline-block'; // Use inline-block
-    if (deleteButton) deleteButton.style.display = 'inline-block'; // Use inline-block
+    const updatedTags = currentTags.filter(t => t !== tag);
+    renderCurrentEditTags(updatedTags, currentEditTagsDiv); // Re-render the display area
 }
 
-// Function to save entry changes
-// Updated to use the currentUser parameter
-async function saveEntryChanges(entryId, entryElement, db, currentUser, getLoadedEntriesCallback, displayEntriesCallback, searchInput) {
-    console.log('Saving changes for entry:', entryId);
+// Function to enter edit mode for an entry
+export function enterEditMode(entryElement, entry) {
+    console.log('Entering edit mode for entry:', entry.id);
+    const viewModeDiv = entryElement.querySelector('.entry-view-mode');
     const editModeDiv = entryElement.querySelector('.entry-edit-mode');
     const titleInput = editModeDiv.querySelector('.edit-title-input');
     const contentTextarea = editModeDiv.querySelector('.edit-content-textarea');
-    // Need to get tags from the edit tags area
-    const updatedTags = [];
-    editModeDiv.querySelectorAll('.current-edit-tags .tag').forEach(tagSpan => {
-        // Extract tag text, excluding the remove button 'x'
-        const tagText = tagSpan.textContent.slice(0, -1).trim(); // Assumes 'x' is always the last character
-        if (tagText) {
-            updatedTags.push(tagText);
-        }
-    });
+    const currentEditTagsDiv = editModeDiv.querySelector('.current-edit-tags');
+    const editTagInput = editModeDiv.querySelector('.edit-tag-input');
+    const addEditTagButton = editModeDiv.querySelector('.button');
+    const saveButton = entryElement.querySelector('.save-edit-button');
+    const cancelButton = entryElement.querySelector('.cancel-edit-button');
+    const editButton = entryElement.querySelector('.edit-entry-button');
+    const deleteButton = entryElement.querySelector('.delete-entry-button');
 
-    const updatedData = {
-        aiTitle: titleInput.value.trim(),
-        content: contentTextarea.value.trim(),
-        tags: updatedTags,
-        // Note: timestamp and aiTimestamp are not updated on edit based on current schema
+    // Hide view mode, show edit mode
+    viewModeDiv.style.display = 'none';
+    editModeDiv.style.display = 'block';
+
+    // Populate edit fields
+    titleInput.value = entry.aiTitle || '';
+    contentTextarea.value = entry.content || '';
+
+    // *** Add logs to check input elements ***
+    console.log('Title Input element:', titleInput);
+    console.log('Content Textarea element:', contentTextarea);
+    console.log('Title Input display style:', titleInput.style.display);
+    console.log('Content Textarea display style:', contentTextarea.style.display);
+    // *** End logs ***
+
+    // Render existing tags in the edit area
+    renderCurrentEditTags(entry.tags || [], currentEditTagsDiv);
+
+    // Show/hide buttons
+    saveButton.style.display = 'inline-block';
+    cancelButton.style.display = 'inline-block';
+    editButton.style.display = 'none';
+    deleteButton.style.display = 'none';
+
+    // Remove any existing listeners to prevent duplicates
+    const oldAddListener = addEditTagButton.onclick;
+    if (oldAddListener) {
+        addEditTagButton.removeEventListener('click', oldAddListener);
+    }
+     const oldInputListener = editTagInput.onkeypress;
+    if (oldInputListener) {
+         editTagInput.removeEventListener('keypress', oldInputListener);
+    }
+
+    addEditTagButton.onclick = () => {
+        addTagToEdit(editTagInput.value, currentEditTagsDiv, editTagInput);
     };
 
-    // Use the currentUser parameter directly
-    if (!currentUser || !currentUser.uid) {
-        console.error('Cannot save changes: No user logged in or user UID is undefined.');
-        alert('Please log in to save changes.');
+    editTagInput.onkeypress = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addTagToEdit(editTagInput.value, currentEditTagsDiv, editTagInput);
+        }
+    };
+
+}
+
+// Function to exit edit mode and return to view mode
+export function cancelEditMode(entryElement) {
+    console.log('Canceling edit mode.');
+    const viewModeDiv = entryElement.querySelector('.entry-view-mode');
+    const editModeDiv = entryElement.querySelector('.entry-edit-mode');
+    const saveButton = entryElement.querySelector('.save-edit-button');
+    const cancelButton = entryElement.querySelector('.cancel-edit-button');
+    const editButton = entryElement.querySelector('.edit-entry-button');
+    const deleteButton = entryElement.querySelector('.delete-entry-button');
+
+    // Hide edit mode, show view mode
+    editModeDiv.style.display = 'none';
+    viewModeDiv.style.display = 'block';
+
+    // Show/hide buttons
+    saveButton.style.display = 'none';
+    cancelButton.style.display = 'none';
+    editButton.style.display = 'inline-block';
+    deleteButton.style.display = 'inline-block';
+
+     // Clear the edit tag input and selected tags display
+    const editTagInput = editModeDiv.querySelector('.edit-tag-input');
+    const currentEditTagsDiv = editModeDiv.querySelector('.current-edit-tags');
+     editTagInput.value = '';
+    currentEditTagsDiv.innerHTML = '';
+}
+
+// Function to save edited entry changes (including tags)
+export async function saveEntryChanges(entryId, entryElement, db, currentUser, getLoadedEntriesCallback, displayEntriesCallback, searchInput, updatedContent, updatedTitle, updatedTags) {
+    console.log('Saving changes for entry ID:', entryId);
+     if (!currentUser || !currentUser.uid) {
+        alert('No user logged in. Cannot save changes.');
+        console.error('Attempted to save changes without logged-in user.');
         return;
     }
 
+    const entryRef = doc(db, 'users', currentUser.uid, 'entries', entryId);
+    const updatedData = {
+        content: updatedContent,
+        // Include updatedTitle only if it's not empty or null/undefined
+        ...(updatedTitle && { aiTitle: updatedTitle }),
+        tags: updatedTags // Include the updated tags
+        // Note: We don't update the timestamp here to preserve the original entry time
+    };
+
     try {
-        const entryRef = doc(db, 'users', currentUser.uid, 'entries', entryId); // Use currentUser.uid
-        console.log('Attempting to update document with ID:', entryId);
-        console.log('Data being sent for update:', updatedData);
         await updateDoc(entryRef, updatedData);
         console.log('Entry updated successfully:', entryId);
 
-        // After saving, we need to re-render the specific entry or the entire list to reflect changes.
-        // Re-fetching the entire list is simpler for now and ensures consistency.
-        // A more optimized approach would be to update the single entry in the DOM.
+        // Find the entry in the loadedEntries array and update its data
+        const entryIndex = getLoadedEntriesCallback().findIndex(entry => entry.id === entryId);
+        if (entryIndex > -1) {
+            getLoadedEntriesCallback()[entryIndex] = { ...getLoadedEntriesCallback()[entryIndex], ...updatedData };
+        }
 
-        // Trigger a re-render of the entries list. This will fetch the latest data including the update.
-        if (getLoadedEntriesCallback && displayEntriesCallback) {
-             // Call getLoadedEntriesCallback to get the latest data before re-displaying
-             const currentLoadedEntries = getLoadedEntriesCallback();
-             // Pass all necessary arguments to displayEntriesCallback
-             displayEntriesCallback(currentLoadedEntries, activeFilterTags, searchInput, (entryId) => handleDeleteEntry(entryId, currentUser, null, db), handleEditClick, handleSaveClick, handleCancelClick, postDisplayCallback, db, currentUser, getLoadedEntriesCallback);
-        } else {
-             // Fallback: Just cancel edit mode if re-render callbacks aren't available
-             cancelEditMode(entryElement);
+        // Re-render the entries list to reflect the changes and update tags/filters
+        // Need to pass all necessary arguments to displayEntriesCallback
+        displayEntriesCallback(
+            getLoadedEntriesCallback(), // entriesToDisplay (updated list)
+            activeFilterTags, // activeFilterTags (from tagging module)
+            searchInput, // searchInput element
+            (id) => handleDeleteEntry(id, currentUser, document.getElementById('entry-success'), db), // handleDeleteEntryCallback
+            handleEditClick, // handleEditClickCallback
+            handleSaveClick, // handleSaveClickCallback
+            handleCancelClick, // handleCancelClickCallback
+            displayEntriesCallback, // postDisplayCallback
+            db, // dbInstance
+            currentUser, // currentUserObject
+            getLoadedEntriesCallback // getLoadedEntriesCallback
+        );
+
+        // Exit edit mode
+        cancelEditMode(entryElement);
+
+        // Provide user feedback (optional)
+        const entrySuccessMessage = document.getElementById('entry-success');
+        if (entrySuccessMessage) {
+             entrySuccessMessage.textContent = 'Entry updated successfully!';
+             setTimeout(() => { entrySuccessMessage.textContent = ''; }, 5000);
         }
 
     } catch (error) {
-        console.error('Error updating entry:', error); // Log the specific error object
+        console.error('Error saving entry changes:', error);
+        console.error('Firestore error details:', error);
         alert('Error saving changes. Please try again.');
+         const entrySuccessMessage = document.getElementById('entry-success');
+         if (entrySuccessMessage) {
+             entrySuccessMessage.textContent = 'Failed to save changes.';
+             setTimeout(() => { entrySuccessMessage.textContent = ''; }, 5000);
+         }
     }
 } 

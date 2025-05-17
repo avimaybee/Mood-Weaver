@@ -59,6 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
              // Re-render tags on login, assuming they might have changed or need clearing
             selectedTags.length = 0; // Clear selected tags array in tagging module
             renderSelectedTags(); // Render the now empty selected tags using the function from the tagging module
+             // Also render available and filter tags for the logged-in user
+             // The actual rendering with entries happens after loadJournalEntries fetches data
         },
         // Callback for user logged out
         () => {
@@ -217,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const postDisplayCallback = (renderedEntries) => {
             console.log('postDisplayCallback executed from onSnapshot or filtering/searching after rendering');
             console.log('postDisplayCallback received renderedEntries (should be the loaded entries):', renderedEntries);
+            console.log('--- Inside postDisplayCallback --- Checking calls to tag rendering functions.');
 
             // Re-initialize tagging/filtering with the newly loaded/rendered entries
             initializeTaggingFilteringSearching(
@@ -248,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
             );
 
             // Also re-render available and selected tags with the new data
+            console.log('--- postDisplayCallback --- Calling renderAvailableTags.');
             console.log('Calling renderAvailableTags and renderFilterTags with loadedEntries:', loadedEntries);
             // Correct arguments passed to renderAvailableTags and renderFilterTags
             renderAvailableTags(
@@ -296,6 +300,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 postDisplayCallback // 12th arg: displayEntriesCallback (Pass postDisplayCallback again)
             );
 
+            postDisplayCallback(loadedEntries); // Call the callback after displayEntries
+
             // renderAvailableTags and renderFilterTags are now called inside the displayEntries callback above
 
         }, error => {
@@ -306,32 +312,79 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Define handler for tag clicks
-    function handleTagClick(tag, allEntries, dbInst, currentUserObj, getLoadedCb, displayEntriesCb) { // Updated parameter name to currentUserObj
-        console.log(`Tag clicked: ${tag}`);
-        // Toggle the tag in active filters
-        toggleFilterTag(tag); // toggleFilterTag is imported from taggingFilteringSearching.js
-
-        // Re-display entries with updated filters
-        // Pass all necessary arguments to displayEntries, including the currentUser object
-         displayEntries(allEntries, activeFilterTags, document.getElementById('search-input'), (entryId) => handleDeleteEntry(entryId, currentUserObj, entrySuccessMessage, dbInst), handleEditClick, handleSaveClick, handleCancelClick, displayEntriesCb, dbInst, currentUserObj, getLoadedCb); // Pass currentUserObj
+    function handleTagClick(tag, entries, dbInst, currentUserObj, getLoadedCb, displayEntriesCb) {
+        console.log('handleTagClick called with tag:', tag);
+        // Logic to add the tag to the currently selected tags for a new entry
+        // Call the addTag function from the tagging module
+        addTag(
+            tag,
+            displayEntriesCb, // Pass displayEntriesCallback
+            entries, // Pass entries
+            getLoadedCb, // Pass getLoadedEntriesCallback
+            (entryId) => handleDeleteEntry(entryId, currentUserObj, entrySuccessMessage, dbInst), // Pass handleDeleteEntryCallback
+            handleEditClick, // Pass handleEditClickCallback
+            handleSaveClick, // Pass handleSaveClickCallback
+            handleCancelClick, // Pass handleCancelClickCallback
+            dbInst, // Pass dbInstance
+            currentUserObj // Pass currentUserObject
+        );
     }
 
     // Define dummy handlers for edit/save/cancel clicks for now
     // These will be properly implemented later in journalEntryDisplay.js and passed via displayEntries
     function handleEditClick(entryId) {
-        console.log(`Edit clicked for entry ${entryId}`);
-        // Implementation will be in journalEntryDisplay.js's displayEntries function
+        console.log(`Edit clicked for entry ID: ${entryId}`);
+        // Logic to switch entry with entryId to edit mode
+        const entryElement = document.querySelector(`.entry[data-id="${entryId}"]`);
+        if (entryElement) {
+            enterEditMode(entryElement, loadedEntries.find(entry => entry.id === entryId)); // Pass the entry object
+        }
     }
 
-    function handleSaveClick(entryId) {
-         console.log(`Save clicked for entry ${entryId}`);
-         // Implementation will be in journalEntryDisplay.js's saveEntryChanges function
+    async function handleSaveClick(entryId) {
+        console.log(`Save clicked for entry ID: ${entryId}`);
+        const entryElement = document.querySelector(`.entry[data-id="${entryId}"]`);
+         if (entryElement) {
+            await saveEntryChanges(entryId, entryElement, db, getCurrentUser(), () => loadedEntries, displayEntries, searchInput);
+         }
     }
 
     function handleCancelClick(entryId) {
-         console.log(`Cancel clicked for entry ${entryId}`);
-         // Implementation will be in journalEntryDisplay.js's cancelEditMode function
+        console.log(`Cancel clicked for entry ID: ${entryId}`);
+        const entryElement = document.querySelector(`.entry[data-id="${entryId}"]`);
+        if (entryElement) {
+            cancelEditMode(entryElement);
+        }
     }
+
+    // Initialize tagging, filtering, and searching event listeners
+    // Pass all necessary callbacks and objects to the initialization function
+    initializeTaggingFilteringSearching(
+        handleTagClick, // handleTagClickCallback
+        (entries, activeFilters, searchInputElement, deleteCb, dbInst, currentUserObj, getLoadedCb, displayEntriesCb) => { // displayEntriesCallback
+             displayEntries(
+                 entries,
+                 activeFilters,
+                 searchInputElement,
+                 deleteCb,
+                 handleEditClick, // Pass handleEditClickCallback
+                 handleSaveClick, // Pass handleSaveClickCallback
+                 handleCancelClick, // Pass handleCancelClickCallback
+                 displayEntriesCb, // Pass postDisplayCallback
+                 dbInst,
+                 currentUserObj,
+                 getLoadedCb
+             );
+         },
+        searchInput, // searchInput element
+        () => loadedEntries, // getLoadedEntriesCallback
+        (entryId) => handleDeleteEntry(entryId, getCurrentUser(), entrySuccessMessage, db), // handleDeleteEntryCallback
+        handleEditClick, // handleEditClickCallback
+        handleSaveClick, // handleSaveClickCallback
+        handleCancelClick, // handleCancelClickCallback
+        db, // dbInstance
+        getCurrentUser() // currentUserObject (get current user at init time)
+    );
 
 }); // Close DOMContentLoaded listener
 
