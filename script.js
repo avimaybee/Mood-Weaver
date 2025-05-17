@@ -1,19 +1,8 @@
-// --- Firebase Configuration --- 
-// IMPORTANT: Replace this with your project's Firebase config object
-const firebaseConfig = {
-    apiKey: "AIzaSyCMoWvMzpxWW8Ji2GkS8izkW_MP0E8dGwI",
-    authDomain: "mood-weaver-avi.firebaseapp.com",
-    projectId: "mood-weaver-avi",
-    storageBucket: "mood-weaver-avi.appspot.com",
-    messagingSenderId: "1096682270009",
-    appId: "1:1096682270009:web:ca1163b2d2a79136040ce8",
-    measurementId: "G-YHG9KN5GY1"
-};
+// --- Firebase Configuration ---
+// IMPORTANT: This configuration is now in ./firebase-config.js and is gitignored.
+// Please ensure that file exists locally with your actual Firebase config.
 
-// --- Initialize Firebase --- 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+import { auth, db } from './firebase-config.js';
 
 // --- DOM Elements --- 
 const authContainer = document.getElementById('auth-container');
