@@ -35,17 +35,18 @@
         <!-- Journal Section (Initially Hidden/Shown based on auth state) -->
         <div id="journal-container" style="display: none;">
             <div id="user-info">
+                <img id="user-pfp" src="" alt="User Profile Picture" class="user-pfp-icon">
                 <p>Logged in as: <span id="user-email-display"></span></p>
                 <button id="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
             <h2>My Journal</h2>
             <form id="journal-form">
-                <label for="journal-entry">Write your entry:</label>
+                <label for="journal-entry"><i class="fas fa-pencil-alt"></i> Write your entry:</label>
                 <textarea id="journal-entry" placeholder="Start typing your thoughts here..." rows="6"></textarea>
 
                 <!-- Tag input area -->
                 <div id="tag-input-area">
-                    <label for="tag-input">Tags:</label>
+                    <label for="tag-input"><i class="fas fa-tags"></i> Tags:</label>
                     <div class="tag-input-container">
                         <input type="text" id="tag-input" placeholder="Add tags (e.g., project, ideas)">
                         <button type="button" id="add-tag-button"><i class="fas fa-check"></i></button>
@@ -64,11 +65,11 @@
             <hr>
             <!-- Integrated Search and Filter Area -->
             <div id="search-filter-area">
-                <label for="search-input">Search & Filter:</label>
+                <label for="search-input"><i class="fas fa-search"></i> Search & Filter:</label>
                 <input type="text" id="search-input" placeholder="Search entries or filter by tags...">
                 <div id="filter-tags-list"></div> <!-- Keep the filter tags list here -->
             </div>
-            <h3>Your Entries:</h3>
+            <h3><i class="fas fa-clipboard"></i> Your Entries:</h3>
             
             <div id="entries-list">
                 <!-- Entries will be dynamically loaded here -->

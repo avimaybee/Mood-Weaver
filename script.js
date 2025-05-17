@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const availableTagsDiv = document.getElementById('available-tags'); // Added for refactoring
     const filterTagsListDiv = document.getElementById('filter-tags-list'); // Added for refactoring
     const searchInput = document.getElementById('search-input'); // Added for refactoring
+    const userPfpIcon = document.getElementById('user-pfp'); // Added for profile picture
 
     // --- Placeholder Phrases --- // Moved inside DOMContentLoaded
     const placeholderPhrases = [
@@ -181,10 +182,22 @@ document.addEventListener('DOMContentLoaded', () => {
             // User is logged in
             console.log('Auth state changed: Logged in as', user.email);
             currentUser = user;
-            // Revert to displaying full email
-            userEmailParagraph.innerHTML = '<i class="fas fa-user-circle"></i> Logged in as: <span id="user-email-display">' + user.email + '</span>';
+            // Display user email
+            userEmailParagraph.innerHTML = '<span id="user-email-display">' + user.email + '</span>';
             authContainer.style.display = 'none';
             journalContainer.style.display = 'block';
+
+            // Handle user profile picture display
+            if (user.photoURL) {
+                userPfpIcon.src = user.photoURL;
+            } else {
+                // Use a default placeholder image if no photoURL is available
+                // Using ui-avatars.com for a generic placeholder. The size is controlled by CSS.
+                userPfpIcon.src = `https://ui-avatars.com/api/?name=${user.email.charAt(0).toUpperCase()}&background=random&color=fff`;
+            }
+            // Ensure the image is displayed regardless of whether a custom photo is available
+            userPfpIcon.style.display = 'inline-block'; // Show the image
+
             loadJournalEntries(); // Load entries when user logs in
         } else {
             // User is logged out
@@ -207,8 +220,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (auth.currentUser) {
         console.log('Initial check: User already logged in as', auth.currentUser.email);
         currentUser = auth.currentUser;
-        // Revert to displaying full email for initial display
-        userEmailDisplay.textContent = currentUser.email;
+
+        const initialUser = auth.currentUser;
+        // Handle user profile picture display for initial load
+        if (initialUser.photoURL) {
+            userPfpIcon.src = initialUser.photoURL;
+        } else {
+             // Use a default placeholder image if no photoURL is available
+            userPfpIcon.src = `https://ui-avatars.com/api/?name=${initialUser.email.charAt(0).toUpperCase()}&background=random&color=fff`;
+        }
+        // Ensure the image is displayed
+        userPfpIcon.style.display = 'inline-block'; // Show the image
+
+        // Display user email
+        userEmailDisplay.textContent = initialUser.email;
         authContainer.style.display = 'none';
         journalContainer.style.display = 'block';
         loadJournalEntries();
