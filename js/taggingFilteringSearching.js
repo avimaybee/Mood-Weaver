@@ -27,6 +27,7 @@ let _handleCancelClickCallback = null;
 let _dbInstance = null;
 let _currentUserObject = null;
 let _searchInput = null; // Store search input element
+let _getActiveFilterTagsCallback = null; // Store the callback for active filter tags
 
 // Function to render selected tags in the UI (for the entry form)
 export function renderSelectedTags() {
@@ -286,10 +287,10 @@ export function toggleFilterTag(
     }
 
     // Re-display entries with the new filter - requires the stored callback
-    if (_displayEntriesCallback && _getLoadedEntriesCallback && _searchInput) {
+    if (_displayEntriesCallback && _getLoadedEntriesCallback && _searchInput && _getActiveFilterTagsCallback) { // Check if getActiveFilterTagsCallback is stored
         _displayEntriesCallback(
             _getLoadedEntriesCallback(), // entriesToDisplay
-            activeFilterTags, // activeFilterTags
+            _getActiveFilterTagsCallback(), // Pass activeFilterTags using the getter callback
             _searchInput, // searchInput element
             _handleDeleteEntryCallback,
             _handleEditClickCallback,
@@ -320,10 +321,10 @@ document.getElementById('add-tag-button').addEventListener('click', () => {
 // This listener needs to use the stored callbacks/data for re-displaying entries
 searchInput.addEventListener('input', () => {
     console.log('Search input changed:', searchInput.value);
-     if (_displayEntriesCallback && _getLoadedEntriesCallback && _searchInput) {
+     if (_displayEntriesCallback && _getLoadedEntriesCallback && _searchInput && _getActiveFilterTagsCallback) { // Check if getActiveFilterTagsCallback is stored
          _displayEntriesCallback(
              _getLoadedEntriesCallback(), // entriesToDisplay
-             activeFilterTags, // activeFilterTags
+             _getActiveFilterTagsCallback(), // Pass activeFilterTags using the getter callback
              _searchInput, // searchInput element
              _handleDeleteEntryCallback,
              _handleEditClickCallback,
@@ -351,7 +352,8 @@ export function initializeTaggingFilteringSearching(
     handleSaveClickCallback, // Callback for save button (from script.js)
     handleCancelClickCallback, // Callback for cancel button (from script.js)
     dbInstance, // Firestore db instance (from script.js)
-    currentUserObject // Current user object (from script.js)
+    currentUserObject, // Current user object (from script.js)
+    getActiveFilterTagsCallback // Callback to get active filter tags (from script.js)
 ) {
     console.log('initializeTaggingFilteringSearching called.');
     // Store all necessary callbacks and data in module-level variables
@@ -364,6 +366,7 @@ export function initializeTaggingFilteringSearching(
     _dbInstance = dbInstance;
     _currentUserObject = currentUserObject;
     _searchInput = searchInputElement; // Store the search input element
+    _getActiveFilterTagsCallback = getActiveFilterTagsCallback; // Store the getter callback
 
     // Note: Event listeners for tagInput, add-tag-button, and searchInput are attached when the module is loaded.
     // The logic within those listeners will now use the stored module-level variables.

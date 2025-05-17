@@ -345,7 +345,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Save clicked for entry ID: ${entryId}`);
         const entryElement = document.querySelector(`.entry[data-id="${entryId}"]`);
          if (entryElement) {
-            await saveEntryChanges(entryId, entryElement, db, getCurrentUser(), () => loadedEntries, displayEntries, searchInput);
+            // Pass activeFilterTags from the script.js scope to saveEntryChanges
+            await saveEntryChanges(entryId, entryElement, db, getCurrentUser(), () => loadedEntries, displayEntries, searchInput, activeFilterTags);
          }
     }
 
@@ -383,7 +384,9 @@ document.addEventListener('DOMContentLoaded', () => {
         handleSaveClick, // handleSaveClickCallback
         handleCancelClick, // handleCancelClickCallback
         db, // dbInstance
-        getCurrentUser() // currentUserObject (get current user at init time)
+        getCurrentUser(), // currentUserObject (get current user at init time)
+        // Provide the getter callback for activeFilterTags
+        () => activeFilterTags // getActiveFilterTagsCallback - Return the activeFilterTags array
     );
 
 }); // Close DOMContentLoaded listener
