@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Ensure the image is displayed regardless of whether a custom photo is available
             userPfpIcon.style.display = 'inline-block'; // Show the image
 
-            loadJournalEntries(); // Load entries when user logs in
+            loadJournalEntries(); // Call without passing dependencies for now
         } else {
             // User is logged out
             console.log('Auth state changed: Logged out');
@@ -236,41 +236,10 @@ document.addEventListener('DOMContentLoaded', () => {
         userEmailDisplay.textContent = initialUser.email;
         authContainer.style.display = 'none';
         journalContainer.style.display = 'block';
-        loadJournalEntries();
+        loadJournalEntries(); // Call without passing dependencies for now
     }
 
     // --- Journal Logic --- 
-
-    // Function to set the form to edit mode
-    function setEditMode(entry) {
-        editingEntryId = entry.id;
-        journalEntryInput.value = entry.content;
-        selectedTags = entry.tags || [];
-        renderSelectedTags();
-        saveEntryButton.innerHTML = '<i class="fas fa-save"></i> Update Entry'; // Change button text and icon for Update
-        cancelEditButton.style.display = 'inline-block'; // Show cancel button
-        journalForm.classList.add('edit-mode'); // Add class for styling
-        entrySuccessMessage.textContent = ''; // Clear any success message
-    }
-
-    // Function to reset the form from edit mode
-    function resetFormMode() {
-        editingEntryId = null;
-        journalEntryInput.value = '';
-        selectedTags = [];
-        renderSelectedTags();
-        saveEntryButton.innerHTML = '<i class="fas fa-save"></i> Save Entry'; // Revert button text and icon
-        cancelEditButton.style.display = 'none'; // Hide cancel button
-        journalForm.classList.remove('edit-mode'); // Remove class
-        entrySuccessMessage.textContent = ''; // Clear any success message
-        const randomIndex = Math.floor(Math.random() * placeholderPhrases.length);
-        journalEntryInput.placeholder = placeholderPhrases[randomIndex];
-    }
-
-    // Event listener for the Cancel Edit button
-    cancelEditButton.addEventListener('click', () => {
-        resetFormMode();
-    });
 
     // Function to render selected tags in the UI
     function renderSelectedTags() {
@@ -317,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addTag(tagInput.value);
     });
 
-    // Handle journal entry submission (Create or Update)
+    // Handle journal entry submission (Create only)
     journalForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const entryContent = journalEntryInput.value.trim();
@@ -336,62 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (editingEntryId) {
-            // --- UPDATE EXISTING ENTRY ---
-            entrySuccessMessage.textContent = 'Updating entry...';
-            const entryRef = doc(db, 'users', currentUser.uid, 'entries', editingEntryId);
-            
-            try {
-                await updateDoc(entryRef, {
-                    content: entryContent,
-                    timestamp: serverTimestamp(),
-                    tags: selectedTags
-                });
-                console.log('Journal entry updated in Firestore with ID:', editingEntryId);
-                entrySuccessMessage.textContent = 'Entry updated! Re-analyzing with AI...';
-
-                // Trigger re-analysis
-                const aiResponse = await fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ entryContent: entryContent })
-                });
-
-                if (!aiResponse.ok) {
-                    const errData = await aiResponse.json().catch(() => null);
-                    const errorMessage = errData ? (errData.error || JSON.stringify(errData)) : `Server error: ${aiResponse.status}`;
-                    console.error('AI re-analysis error from backend:', errorMessage);
-                    entrySuccessMessage.textContent = 'Entry updated. AI re-analysis failed.';
-                    await updateDoc(entryRef, { 
-                        aiError: `Update successful, but re-analysis failed: ${errorMessage}`,
-                        aiTimestamp: serverTimestamp()
-                    });
-                } else {
-                    const aiData = await aiResponse.json();
-                    console.log('AI Re-analysis successful. Data from backend:', aiData);
-                    await updateDoc(entryRef, {
-                        aiTitle: aiData.aiTitle || "AI Title Placeholder",
-                        aiGreeting: aiData.aiGreeting || "Hello!",
-                        aiObservations: aiData.aiObservations || "Observations placeholder.",
-                        aiSentimentAnalysis: aiData.aiSentimentAnalysis || "Sentiment analysis placeholder.",
-                        aiReflectivePrompt: aiData.aiReflectivePrompt || "What are your thoughts?",
-                        aiTimestamp: serverTimestamp(),
-                        aiError: null 
-                    });
-                    entrySuccessMessage.textContent = 'Entry updated and AI re-analysis complete!';
-                }
-            } catch (error) {
-                console.error('Error updating journal entry or during AI re-analysis:', error);
-                entrySuccessMessage.textContent = 'Failed to update entry or AI re-analysis error.';
-                // Optionally update Firestore with a general update error if needed
-            } finally {
-                saveEntryButton.disabled = false; // Ensure button is re-enabled
-                setTimeout(() => { entrySuccessMessage.textContent = ''; }, 7000);
-                resetFormMode(); // Always reset form state
-            }
-
-        } else {
-            // --- CREATE NEW ENTRY --- (existing logic, slightly adapted)
+        // --- CREATE NEW ENTRY ---
         entrySuccessMessage.textContent = 'Saving entry...';
             const newEntryData = {
             userId: currentUser.uid,
@@ -404,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const docRef = await addDoc(collection(db, 'users', currentUser.uid, 'entries'), newEntryData);
                 newEntryRef = docRef;
                 console.log('Journal entry initially saved with ID:', docRef.id);
-                journalEntryInput.value = ''; 
+                journalEntryInput.value = '';
                 entrySuccessMessage.textContent = 'Entry saved! Analyzing with AI...';
 
                 const aiResponse = await fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
@@ -419,9 +333,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('AI analysis error from backend:', errorMessage);
                         entrySuccessMessage.textContent = 'Entry saved. AI analysis failed.';
                     if (newEntryRef) {
-                       await updateDoc(newEntryRef, { 
+                       await updateDoc(newEntryRef, {
                            aiError: errorMessage,
-                           aiTimestamp: serverTimestamp() 
+                           aiTimestamp: serverTimestamp()
                         });
                     }
                     } else {
@@ -455,32 +369,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveEntryButton.disabled = false; // Ensure button is re-enabled
                 journalEntryInput.value = ''; // Always clear input after save attempt
                 setTimeout(() => { entrySuccessMessage.textContent = ''; }, 7000);
-                resetFormMode(); // Always reset form state
+                // resetFormMode(); // No longer needed as edit mode is removed
             }
-        }
     });
 
-    // Function to handle Edit button click
-    async function handleEditEntry(entryId) {
-        if (!currentUser) return;
-        console.log('Attempting to edit entry ID:', entryId);
-        try {
-            const entryRef = doc(db, 'users', currentUser.uid, 'entries', entryId);
-            const doc = await getDoc(entryRef);
-            if (doc.exists) {
-                setEditMode({ id: doc.id, ...doc.data() });
-            } else {
-                console.error('No such document to edit!');
-                alert('Error: Could not find the entry to edit.');
-            }
-        } catch (error) {
-            console.error('Error fetching entry for edit:', error);
-            alert('Error fetching entry. Please try again.');
-        }
-    }
-
-    // Function to handle Delete button click
-    async function handleDeleteEntry(entryId) {
+    // Function to handle Delete button click (Keep this)
+    async function handleDeleteEntry(db, doc, deleteDoc, entryId) { // Accept db, doc, deleteDoc as arguments
         if (!currentUser) return;
         console.log('Attempting to delete entry ID:', entryId);
 
@@ -491,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Journal entry deleted with ID:', entryId);
                 entrySuccessMessage.textContent = 'Entry deleted successfully.';
                  if (editingEntryId === entryId) { // If the deleted entry was being edited
-                    resetFormMode();
+                    // resetFormMode(); // No longer needed
                 }
             } catch (error) {
                 console.error('Error deleting journal entry:', error);
@@ -503,8 +397,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Load and display journal entries
-    function loadJournalEntries() {
+    // Load and display journal entries (keep this function)
+    function loadJournalEntries() { // Revert to not accepting Firestore dependencies
         if (!currentUser) return;
         console.log('Loading journal entries for user:', currentUser.uid);
 
@@ -630,19 +524,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const controlsDiv = document.createElement('div');
             controlsDiv.classList.add('entry-controls');
 
-            const editButton = document.createElement('button');
-            editButton.classList.add('edit-entry-button');
-            editButton.innerHTML = '<i class="fas fa-pencil-alt"></i> Edit';
-            editButton.dataset.id = entry.id;
-            editButton.addEventListener('click', () => handleEditEntry(entry.id)); // Attach listener
-
             const deleteButton = document.createElement('button');
             deleteButton.classList.add('delete-entry-button');
             deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
             deleteButton.dataset.id = entry.id;
-            deleteButton.addEventListener('click', () => handleDeleteEntry(entry.id)); // Attach listener
+            deleteButton.addEventListener('click', () => handleDeleteEntry(db, doc, deleteDoc, entry.id)); // Attach listener
 
-            controlsDiv.appendChild(editButton);
             controlsDiv.appendChild(deleteButton);
 
             // Add AI Toggle button/icon and label
