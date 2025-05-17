@@ -277,6 +277,15 @@ button:hover {
     font-size: 0.95em;
 }
 
+.user-pfp-icon {
+    width: 48px; /* Set size to 48x48 pixels */
+    height: 48px; /* Set size to 48x48 pixels */
+    border-radius: 50%; /* Make it round */
+    margin-right: 10px; /* Space between icon and text */
+    vertical-align: middle;
+    object-fit: cover; /* Ensure the image covers the area without distortion */
+}
+
 .entry {
     background-color: var(--color-container-background); /* Reverted to White background */
     border: 1px solid var(--color-border);
@@ -483,7 +492,6 @@ button:hover {
 
 .form-button-group button {
     flex-grow: 1; /* Allow buttons to grow and fill space */
-    /* width: auto; Removed, flex-grow handles it */
 }
 
 .form-button-group #save-entry-button {
