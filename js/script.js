@@ -75,8 +75,31 @@ document.addEventListener('DOMContentLoaded', () => {
             activeFilterTags.length = 0; // Clear filter tags array in tagging module
             selectedTags.length = 0; // Clear selected tags array in tagging module
             renderSelectedTags(); // Render empty selected tags
-            renderFilterTags(loadedEntries); // Pass loadedEntries
-             renderAvailableTags(loadedEntries); // Render empty available tags
+
+            // Correct arguments passed to renderFilterTags and renderAvailableTags during logout
+            renderFilterTags(
+                loadedEntries, // entries (will be empty)
+                displayEntries, // displayEntriesCallback
+                () => loadedEntries, // getLoadedEntriesCallback
+                (entryId) => handleDeleteEntry(entryId, null, entrySuccessMessage, db), // handleDeleteEntryCallback (currentUser is null on logout)
+                handleEditClick, // handleEditClickCallback
+                handleSaveClick, // handleSaveClickCallback
+                handleCancelClick, // handleCancelClickCallback
+                db, // dbInstance
+                null // currentUserObject (null on logout)
+            ); // Pass correct arguments
+             renderAvailableTags(
+                loadedEntries, // entries (will be empty)
+                handleTagClick, // handleTagClickCallback
+                displayEntries, // displayEntriesCallback
+                () => loadedEntries, // getLoadedEntriesCallback
+                (entryId) => handleDeleteEntry(entryId, null, entrySuccessMessage, db), // handleDeleteEntryCallback (currentUser is null on logout)
+                handleEditClick, // handleEditClickCallback
+                handleSaveClick, // handleSaveClickCallback
+                handleCancelClick, // handleCancelClickCallback
+                db, // dbInstance
+                null // currentUserObject (null on logout)
+            ); // Pass correct arguments
         }
     );
 
@@ -176,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
     });
 
-    // Load and display journal entries (keep this function in script.js for now)
+    // Load and display journal entries
     function loadJournalEntries() { 
         const currentUser = getCurrentUser(); // Get current user from auth module
         if (!currentUser) return;
@@ -190,19 +213,91 @@ document.addEventListener('DOMContentLoaded', () => {
         const entriesCollectionRef = collection(db, 'users', currentUser.uid, 'entries');
         const entriesQuery = query(entriesCollectionRef, orderBy('timestamp', 'desc'));
 
+        // Define the postDisplayCallback here, accessible to the onSnapshot listener
+        const postDisplayCallback = (renderedEntries) => {
+            console.log('postDisplayCallback executed from onSnapshot or filtering/searching after rendering');
+            console.log('postDisplayCallback received renderedEntries (should be the loaded entries):', renderedEntries);
+
+            // Re-initialize tagging/filtering with the newly loaded/rendered entries
+            initializeTaggingFilteringSearching(
+                handleTagClick, // 1st arg: handleTagClickCallback
+                // 2nd arg: displayEntriesCallback (the callback for filtering/searching updates)
+                (entriesAfterFilter, activeFiltersAfterFilter, searchInputAfterFilter, deleteCbAfterFilter, dbInstAfterFilter, currentUserObjAfterFilter, getLoadedCbAfterFilter, displayEntriesCbAfterFilter) => { // Ensure all args are accepted and currentUser is obj
+                    displayEntries(
+                        entriesAfterFilter, // 1st arg: entriesToDisplay
+                        activeFiltersAfterFilter, // 2nd arg: activeFilterTags
+                        searchInputAfterFilter, // 3rd arg: searchInput element
+                        deleteCbAfterFilter, // 4th arg: handleDeleteEntryCallback
+                        handleEditClick, // 5th arg: editEntryCallback
+                        handleSaveClick, // 6th arg: saveEntryCallback
+                        handleCancelClick, // 7th arg: cancelEditCallback
+                        postDisplayCallback, // 8th arg: displayEntriesCallback (Pass the outer postDisplayCallback)
+                        dbInstAfterFilter, // 9th arg: db
+                        currentUserObjAfterFilter, // 10th arg: currentUser object
+                        getLoadedCbAfterFilter // 11th arg: getLoadedEntriesCallback
+                    );
+                },
+                searchInput, // 3rd arg: searchInput element
+                () => loadedEntries, // 4th arg: getLoadedEntriesCallback
+                (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage, db), // 5th arg: handleDeleteEntryCallback
+                handleEditClick, // 6th arg: handleEditClickCallback
+                handleSaveClick, // 7th arg: handleSaveClickCallback
+                handleCancelClick, // 8th arg: handleCancelClickCallback
+                db, // 9th arg: dbInstance
+                currentUser // 10th arg: currentUserObject
+            );
+
+            // Also re-render available and selected tags with the new data
+            console.log('Calling renderAvailableTags and renderFilterTags with loadedEntries:', loadedEntries);
+            // Correct arguments passed to renderAvailableTags and renderFilterTags
+            renderAvailableTags(
+                loadedEntries, // entries
+                handleTagClick, // handleTagClickCallback
+                displayEntries, // displayEntriesCallback
+                () => loadedEntries, // getLoadedEntriesCallback
+                (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage, db), // handleDeleteEntryCallback
+                handleEditClick, // handleEditClickCallback
+                handleSaveClick, // handleSaveClickCallback
+                handleCancelClick, // handleCancelClickCallback
+                db, // dbInstance
+                currentUser // currentUserObject
+            );
+            renderFilterTags(
+                loadedEntries, // entries
+                displayEntries, // displayEntriesCallback
+                () => loadedEntries, // getLoadedEntriesCallback
+                (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage, db), // handleDeleteEntryCallback
+                handleEditClick, // handleEditClickCallback
+                handleSaveClick, // handleSaveClickCallback
+                handleCancelClick, // handleCancelClickCallback
+                db, // dbInstance
+                currentUser // currentUserObject
+            ); // Add call to renderFilterTags and pass correct arguments
+            renderSelectedTags(); // Ensure selected tags UI is in sync
+        };
+
         entriesListener = onSnapshot(entriesQuery, snapshot => {
             console.log(`Received ${snapshot.docs.length} entries from Firestore.`);
             loadedEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); // Update loadedEntries state
-            
-            // Display entries using the function from journalEntryDisplay.js, passing handleDeleteEntry callback
-            displayEntries(loadedEntries, activeFilterTags, searchInput,
-                // Pass necessary context to handleDeleteEntry via a wrapper function
-                (entryId) => handleDeleteEntry(entryId, getCurrentUser(), entrySuccessMessage, db)
-            ); // Pass necessary data for filtering/searching and delete callback
 
-            // Render tags and filters using functions from taggingFilteringSearching.js
-            renderAvailableTags(loadedEntries, (entries, activeFilters, searchInput) => displayEntries(entries, activeFilters, searchInput, (entryId) => handleDeleteEntry(entryId, getCurrentUser(), entrySuccessMessage, db))); // Pass loadedEntries and display callback with context
-            renderFilterTags(loadedEntries, (entries, activeFilters, searchInput) => displayEntries(entries, activeFilters, searchInput, (entryId) => handleDeleteEntry(entryId, getCurrentUser(), entrySuccessMessage, db))); // Pass loadedEntries and display callback with context
+            // Display entries using the function from journalEntryDisplay.js, passing all necessary callbacks and data
+            displayEntries(
+                loadedEntries, // 1st arg: entriesToDisplay
+                activeFilterTags, // 2nd arg: activeFilterTags
+                searchInput, // 3rd arg: searchInput element
+                (entryId) => handleDeleteEntry(entryId, getCurrentUser(), entrySuccessMessage, db), // 4th arg: handleDeleteEntryCallback
+                handleEditClick, // 5th arg: editEntryCallback
+                handleSaveClick, // 6th arg: saveEntryCallback
+                handleCancelClick, // 7th arg: cancelEditCallback
+                postDisplayCallback, // 8th arg: postDisplayCallback (defined above)
+                db, // 9th arg: db
+                currentUser, // 10th arg: currentUser object (available in loadJournalEntries scope)
+                () => loadedEntries, // 11th arg: getLoadedEntriesCallback
+                postDisplayCallback // 12th arg: displayEntriesCallback (Pass postDisplayCallback again)
+            );
+
+            // renderAvailableTags and renderFilterTags are now called inside the displayEntries callback above
+
         }, error => {
             console.error('Error fetching entries:', error);
             entriesList.innerHTML = '<p class="error-message">Could not load entries. Please refresh.</p>';
@@ -210,11 +305,33 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Attached Firestore listener for entries.');
     }
 
-    // Initialize tagging, filtering, and searching event listeners
-    initializeTaggingFilteringSearching(
-        (entries, activeFilters, searchInput) => displayEntries(entries, activeFilters, searchInput, (entryId) => handleDeleteEntry(entryId, getCurrentUser(), entrySuccessMessage, db)), // Pass displayEntries callback with delete handler and context
-        () => loadedEntries // Pass a callback to get the latest loadedEntries
-    );
+    // Define handler for tag clicks
+    function handleTagClick(tag, allEntries, dbInst, currentUserObj, getLoadedCb, displayEntriesCb) { // Updated parameter name to currentUserObj
+        console.log(`Tag clicked: ${tag}`);
+        // Toggle the tag in active filters
+        toggleFilterTag(tag); // toggleFilterTag is imported from taggingFilteringSearching.js
+
+        // Re-display entries with updated filters
+        // Pass all necessary arguments to displayEntries, including the currentUser object
+         displayEntries(allEntries, activeFilterTags, document.getElementById('search-input'), (entryId) => handleDeleteEntry(entryId, currentUserObj, entrySuccessMessage, dbInst), handleEditClick, handleSaveClick, handleCancelClick, displayEntriesCb, dbInst, currentUserObj, getLoadedCb); // Pass currentUserObj
+    }
+
+    // Define dummy handlers for edit/save/cancel clicks for now
+    // These will be properly implemented later in journalEntryDisplay.js and passed via displayEntries
+    function handleEditClick(entryId) {
+        console.log(`Edit clicked for entry ${entryId}`);
+        // Implementation will be in journalEntryDisplay.js's displayEntries function
+    }
+
+    function handleSaveClick(entryId) {
+         console.log(`Save clicked for entry ${entryId}`);
+         // Implementation will be in journalEntryDisplay.js's saveEntryChanges function
+    }
+
+    function handleCancelClick(entryId) {
+         console.log(`Cancel clicked for entry ${entryId}`);
+         // Implementation will be in journalEntryDisplay.js's cancelEditMode function
+    }
 
 }); // Close DOMContentLoaded listener
 
@@ -237,4 +354,9 @@ export async function handleDeleteEntry(entryId, currentUser, entrySuccessMessag
             setTimeout(() => { entrySuccessMessage.textContent = ''; }, 5000);
         }
     }
-} 
+}
+
+// The following functions are defined and exported in js/taggingFilteringSearching.js and should not be defined here:
+// function getAllExistingTags(entries) { ... }
+// export function renderAvailableTags(...) { ... }
+// export function renderFilterTags(...) { ... }

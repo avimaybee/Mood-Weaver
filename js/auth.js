@@ -173,10 +173,10 @@ export function initializeAuth(onUserLoggedIn, onUserLoggedOut) {
     });
 
     // Initial check for authenticated user on page load
-    if (auth.currentUser) {
-        console.log('Initial check: User already logged in as', auth.currentUser.email);
-        // No need to call handleLoginSuccess directly here, onAuthStateChanged will fire immediately for the current user.
-    }
+    // if (auth.currentUser) {
+    //     console.log('Initial check: User already logged in as', auth.currentUser.email);
+    //     // No need to call handleLoginSuccess directly here, onAuthStateChanged will fire immediately for the current user.
+    // }
 }
 
 export function getCurrentUser() {
