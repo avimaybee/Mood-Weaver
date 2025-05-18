@@ -8,6 +8,7 @@ import { handleDeleteEntry } from './firebaseUtils.js';
 // --- Variables --- 
 let entriesListener = null;
 let loadedEntries = [];
+let isListMode = false; // Variable to track list mode
 
 document.addEventListener('DOMContentLoaded', () => {
     const journalForm = document.getElementById('journal-form');
@@ -16,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const entriesList = document.getElementById('entries-list');
     const saveEntryButton = document.getElementById('save-entry-button');
     const searchInput = document.getElementById('search-input');
+    const listModeToggle = document.getElementById('list-mode-toggle');
 
     const placeholderPhrases = [
         "Start typing your thoughts here...",
@@ -28,6 +30,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const randomIndex = Math.floor(Math.random() * placeholderPhrases.length);
     journalEntryInput.placeholder = placeholderPhrases[randomIndex];
+
+    // Add event listener for the list mode toggle button
+    if (listModeToggle) {
+        listModeToggle.addEventListener('click', () => {
+            isListMode = !isListMode;
+            listModeToggle.classList.toggle('active', isListMode);
+            if (isListMode) {
+                journalEntryInput.placeholder = "Enter list items, each on a new line...";
+            } else {
+                 const randomIndex = Math.floor(Math.random() * placeholderPhrases.length);
+                 journalEntryInput.placeholder = placeholderPhrases[randomIndex];
+            }
+            // Optionally, add/remove a class on journalEntryInput or its container for styling
+            journalEntryInput.classList.toggle('list-mode-active', isListMode);
+        });
+    }
 
     // Initialize authentication state observer from auth.js
     initializeAuth(
@@ -132,12 +150,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         entrySuccessMessage.textContent = 'Saving entry...';
-        const newEntryData = {
+
+        let newEntryData = {
             userId: currentUser.uid,
-            content: entryContent,
             timestamp: serverTimestamp(),
-            tags: [...selectedTags]
+            tags: [...selectedTags],
+            entryType: isListMode ? 'list' : 'text' // Add entry type field
         };
+
+        let lines = []; // Declare lines in a broader scope
+
+        if (isListMode) {
+            // Parse textarea content into list items
+            lines = entryContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            newEntryData.listItems = lines.map(line => ({ text: line, completed: false }));
+            newEntryData.content = ''; // Clear content for list entries
+        } else {
+            newEntryData.content = entryContent; // Keep content for text entries
+            newEntryData.listItems = []; // Ensure listItems is an empty array for text entries
+        }
+
         let newEntryRef;
         try {
             const docRef = await addDoc(collection(db, 'users', currentUser.uid, 'entries'), newEntryData);
@@ -147,46 +179,59 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedTags.length = 0;
             renderSelectedTags();
 
-            entrySuccessMessage.textContent = 'Entry saved! Analyzing with AI...';
+            // Prepare content for AI analysis based on entry type
+            const contentForAI = isListMode 
+                ? lines.map(item => item.text).join('\n') // Join list item text for AI
+                : entryContent; // Use original content for text entries
 
-            const aiResponse = await fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ entryContent: entryContent })
-            });
+            if (contentForAI) {
+                entrySuccessMessage.textContent = isListMode ? 'List saved! Analyzing with AI...' : 'Entry saved! Analyzing with AI...';
 
-            if (!aiResponse.ok) {
-                const errData = await aiResponse.json().catch(() => null);
-                const errorMessage = errData ? (errData.error || JSON.stringify(errData)) : `Server error: ${aiResponse.status}`;
-                console.error('AI analysis error from backend:', errorMessage);
-                entrySuccessMessage.textContent = 'Entry saved. AI analysis failed.';
-                if (newEntryRef) {
-                    await updateDoc(newEntryRef, {
-                        aiError: errorMessage,
-                        aiTimestamp: serverTimestamp()
-                    });
+                const aiResponse = await fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        entryContent: contentForAI,
+                        entryType: isListMode ? 'list' : 'text' // Include entry type
+                    })
+                });
+
+                if (!aiResponse.ok) {
+                    const errData = await aiResponse.json().catch(() => null);
+                    const errorMessage = errData ? (errData.error || JSON.stringify(errData)) : `Server error: ${aiResponse.status}`;
+                    console.error('AI analysis error from backend:', errorMessage);
+                    entrySuccessMessage.textContent = 'Entry saved. AI analysis failed.';
+                    if (newEntryRef) {
+                        await updateDoc(newEntryRef, {
+                            aiError: errorMessage,
+                            aiTimestamp: serverTimestamp()
+                        });
+                    }
+                } else {
+                    const aiData = await aiResponse.json();
+                    console.log('AI Analysis successful. Data from backend:', aiData);
+                    if (newEntryRef) {
+                        await updateDoc(newEntryRef, {
+                            aiTitle: aiData.aiTitle || "AI Title Placeholder",
+                            aiGreeting: aiData.aiGreeting || "Hello!",
+                            aiObservations: aiData.aiObservations || "Observations placeholder.",
+                            aiSentimentAnalysis: aiData.aiSentimentAnalysis || "Sentiment analysis placeholder.",
+                            aiReflectivePrompt: aiData.aiReflectivePrompt || "What are your thoughts?",
+                            aiTimestamp: serverTimestamp(),
+                            aiError: null
+                        });
+                        entrySuccessMessage.textContent = isListMode ? 'List saved and AI analysis complete!' : 'Entry saved and AI analysis complete!';
+                    }
                 }
-            } else {
-                const aiData = await aiResponse.json();
-                console.log('AI Analysis successful. Data from backend:', aiData);
-                if (newEntryRef) {
-                    await updateDoc(newEntryRef, {
-                        aiTitle: aiData.aiTitle || "AI Title Placeholder",
-                        aiGreeting: aiData.aiGreeting || "Hello!",
-                        aiObservations: aiData.aiObservations || "Observations placeholder.",
-                        aiSentimentAnalysis: aiData.aiSentimentAnalysis || "Sentiment analysis placeholder.",
-                        aiReflectivePrompt: aiData.aiReflectivePrompt || "What are your thoughts?",
-                        aiTimestamp: serverTimestamp(),
-                        aiError: null
-                    });
-                    entrySuccessMessage.textContent = 'Entry saved and AI analysis complete!';
-                }
+            } else { /* if (contentForAI) is false */
+                entrySuccessMessage.textContent = isListMode ? 'Empty list saved.' : 'Empty entry saved.';
             }
         } catch (error) {
             console.error('Error during new entry processing or AI analysis:', error);
             if (!entrySuccessMessage.textContent.includes('failed') && !entrySuccessMessage.textContent.includes('issue')) {
                 entrySuccessMessage.textContent = 'Failed to process new entry fully.';
             }
+            // Update AI error if newEntryRef exists and the error is not from the AI analysis fetch itself
             if (newEntryRef && !error.toString().includes('AI analysis')) {
                 updateDoc(newEntryRef, { 
                     aiError: `Frontend error on new entry: ${error.message}`,
@@ -196,6 +241,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             saveEntryButton.disabled = false;
             journalEntryInput.value = '';
+            // Reset list mode toggle and state after saving
+            isListMode = false;
+            if (listModeToggle) {
+                 listModeToggle.classList.remove('active');
+            }
+            journalEntryInput.classList.remove('list-mode-active');
+             const randomIndex = Math.floor(Math.random() * placeholderPhrases.length);
+             journalEntryInput.placeholder = placeholderPhrases[randomIndex];
+
             setTimeout(() => { entrySuccessMessage.textContent = ''; }, 7000);
         }
     });

@@ -41,8 +41,16 @@
             </div>
             <h2>My Journal</h2>
             <form id="journal-form">
-                <label for="journal-entry"><i class="fas fa-pencil-alt"></i> Write your entry:</label>
-                <textarea id="journal-entry" placeholder="Start typing your thoughts here..." rows="6"></textarea>
+                <div class="entry-input-container">
+                    <div class="entry-input-controls">
+                        <label for="journal-entry"><i class="fas fa-pencil-alt"></i> Write your entry:</label>
+                        <button type="button" id="list-mode-toggle" class="icon-button" title="Toggle List Mode">
+                            <i class="fas fa-list-ul"></i>
+                            <span class="visually-hidden">Toggle List Mode</span>
+                        </button>
+                    </div>
+                    <textarea id="journal-entry" placeholder="Start typing your thoughts here..." rows="6"></textarea>
+                </div>
 
                 <!-- Tag input area -->
                 <div id="tag-input-area">

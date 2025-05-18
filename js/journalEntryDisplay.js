@@ -60,10 +60,40 @@ export function displayEntries(entriesToDisplay, activeFilterTags, searchInput, 
             viewModeDiv.appendChild(titleH3);
         }
 
-        const contentDiv = document.createElement('div');
-        contentDiv.classList.add('entry-content');
-        contentDiv.innerHTML = entry.content.replace(/\n/g, '<br>');
-        viewModeDiv.appendChild(contentDiv);
+        // --- Render Entry Content or List Items ---
+        if (entry.entryType === 'list' && Array.isArray(entry.listItems)) {
+            const listContainer = document.createElement('ul'); // Or <ol> if ordered list is preferred
+            listContainer.classList.add('entry-list-items');
+            entry.listItems.forEach((item, index) => {
+                const listItem = document.createElement('li');
+                listItem.classList.add('list-item');
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = item.completed;
+                checkbox.addEventListener('change', () => {
+                    handleTaskCheckboxChange(entry.id, index, checkbox.checked, getLoadedEntriesCallback);
+                });
+
+                const itemTextSpan = document.createElement('span');
+                itemTextSpan.classList.add('list-item-text');
+                itemTextSpan.textContent = item.text;
+                if (item.completed) {
+                    itemTextSpan.classList.add('completed-task');
+                }
+
+                listItem.appendChild(checkbox);
+                listItem.appendChild(itemTextSpan);
+                listContainer.appendChild(listItem);
+            });
+            viewModeDiv.appendChild(listContainer);
+
+        } else { // Render as plain text entry (or old entries without entryType)
+            const contentDiv = document.createElement('div');
+            contentDiv.classList.add('entry-content');
+            contentDiv.innerHTML = entry.content ? entry.content.replace(/\n/g, '<br>') : '';
+            viewModeDiv.appendChild(contentDiv);
+        }
 
         const entryTimestampSpan = document.createElement('span');
         entryTimestampSpan.classList.add('timestamp');
@@ -316,7 +346,18 @@ export function enterEditMode(entryElement, entry, currentUser, getLoadedEntries
     const addEditTagButton = editModeDiv.querySelector('.add-edit-tag-button');
 
     editTitleInput.value = entry.aiTitle || '';
-    editContentTextarea.value = entry.content || '';
+
+    // Populate textarea based on entry type
+    if (entry.entryType === 'list' && Array.isArray(entry.listItems)) {
+        // Join list items by newline for editing in textarea
+        editContentTextarea.value = entry.listItems.map(item => item.text).join('\n');
+        editContentTextarea.placeholder = 'Edit list items, one per line...';
+    } else {
+        // Populate with content for text entries
+        editContentTextarea.value = entry.content || '';
+        editContentTextarea.placeholder = 'Edit your entry...';
+    }
+
     renderCurrentEditTags(entry.tags || [], currentEditTagsDiv);
 
     const addTagHandler = () => addTagToEdit(editTagInput.value, currentEditTagsDiv, editTagInput);
@@ -409,43 +450,115 @@ export async function saveEntryChanges(entryId, entryElement, getLoadedEntriesCa
             console.error('Error fetching existing document before update:', fetchError);
         }
 
-        await updateDoc(entryRef, {
+        const loadedEntries = getLoadedEntriesCallback();
+        const originalEntry = loadedEntries.find(entry => entry.id === entryId);
+
+        let updateData = {
             aiTitle: updatedTitle,
-            content: updatedContent,
             tags: updatedTags,
-        });
+        };
+
+        if (originalEntry && originalEntry.entryType === 'list') {
+            // Process updated content as list items
+            const updatedLines = updatedContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            const updatedListItems = updatedLines.map(line => {
+                // Try to preserve completion status from original list items
+                const originalItem = originalEntry.listItems ? originalEntry.listItems.find(item => item.text === line) : null;
+                return {
+                    text: line,
+                    completed: originalItem ? originalItem.completed : false // Default to false for new/unmatched items
+                };
+            });
+            updateData.listItems = updatedListItems;
+            updateData.content = ''; // Clear content field for list entries
+        } else {
+            // Process updated content as plain text
+            updateData.content = updatedContent;
+            updateData.listItems = []; // Ensure listItems is empty for text entries
+        }
+
+        await updateDoc(entryRef, updateData);
 
         console.log('Entry successfully updated in Firebase:', entryId);
 
-        const loadedEntries = getLoadedEntriesCallback();
+        // Update the local loadedEntries array
         const entryIndex = loadedEntries.findIndex(entry => entry.id === entryId);
 
         if (entryIndex !== -1) {
             loadedEntries[entryIndex].aiTitle = updatedTitle;
-            loadedEntries[entryIndex].content = updatedContent;
             loadedEntries[entryIndex].tags = updatedTags;
+            if (originalEntry && originalEntry.entryType === 'list') {
+                 loadedEntries[entryIndex].listItems = updateData.listItems;
+                 loadedEntries[entryIndex].content = '';
+            } else {
+                 loadedEntries[entryIndex].content = updatedContent;
+                 loadedEntries[entryIndex].listItems = [];
+            }
 
+            // Re-render the specific entry element in view mode
             const viewModeDiv = entryElement.querySelector('.entry-view-mode');
             if (viewModeDiv) {
                 const titleH3 = viewModeDiv.querySelector('.entry-ai-title');
                 const contentDiv = viewModeDiv.querySelector('.entry-content');
+                const listContainer = viewModeDiv.querySelector('.entry-list-items');
                 const tagsDiv = viewModeDiv.querySelector('.entry-tags');
 
-                if (titleH3) {
-                    if (updatedTitle) {
-                        titleH3.textContent = updatedTitle;
-                        titleH3.style.display = 'block';
-                    } else {
-                        titleH3.style.display = 'none';
-                    }
-                }
-                if (contentDiv) contentDiv.innerHTML = updatedContent.replace(/\n/g, '<br>');
+                 if (titleH3) {
+                     if (updatedTitle) {
+                         titleH3.textContent = updatedTitle;
+                         titleH3.style.display = 'block';
+                     } else {
+                         titleH3.style.display = 'none';
+                     }
+                 }
+
+                 if (originalEntry && originalEntry.entryType === 'list') {
+                     // Re-render list items
+                     if (contentDiv) contentDiv.style.display = 'none'; // Hide content div
+                     if (listContainer) listContainer.remove(); // Remove old list container
+
+                     const newListContainer = document.createElement('ul');
+                     newListContainer.classList.add('entry-list-items');
+                     updateData.listItems.forEach((item, index) => {
+                         const listItem = document.createElement('li');
+                         listItem.classList.add('list-item');
+
+                         const checkbox = document.createElement('input');
+                         checkbox.type = 'checkbox';
+                         checkbox.checked = item.completed;
+                         checkbox.addEventListener('change', () => {
+                             handleTaskCheckboxChange(entryId, index, checkbox.checked, getLoadedEntriesCallback);
+                         });
+
+                         const itemTextSpan = document.createElement('span');
+                         itemTextSpan.classList.add('list-item-text');
+                         itemTextSpan.textContent = item.text;
+                         if (item.completed) {
+                             itemTextSpan.classList.add('completed-task');
+                         }
+
+                         listItem.appendChild(checkbox);
+                         listItem.appendChild(itemTextSpan);
+                         newListContainer.appendChild(listItem);
+                     });
+                     viewModeDiv.insertBefore(newListContainer, titleH3 ? titleH3.nextSibling : viewModeDiv.firstChild); // Insert before title or at the beginning
+
+                 } else {
+                     // Re-render content div
+                     if (listContainer) listContainer.style.display = 'none'; // Hide list container
+                     if (contentDiv) {
+                        contentDiv.innerHTML = updatedContent.replace(/\n/g, '<br>');
+                        contentDiv.style.display = 'block';
+                     }
+                 }
+
                 if (tagsDiv) tagsDiv.innerHTML = updatedTags.map(tag => `<span class="tag">${tag}</span>`).join('');
             }
         }
 
         cancelEditMode(entryElement);
-        // Re-render entries to reflect the updated tags
+        // Re-filter and display entries to reflect potential tag changes that affect filtering
+        // No need to re-fetch, just re-render the current loaded entries
         displayEntriesCallback(
             loadedEntries,
             activeFilterTags,
@@ -460,16 +573,9 @@ export async function saveEntryChanges(entryId, entryElement, getLoadedEntriesCa
                 searchInput,
                 activeFilterTags
             ),
-            (entryId) => saveEntryChanges(
-                entryId,
-                document.querySelector(`.entry[data-id="${entryId}"]`),
-                getLoadedEntriesCallback,
-                displayEntriesCallback,
-                searchInput,
-                activeFilterTags,
-                editContentTextarea.value.trim(),
-                editTitleInput.value.trim(),
-                Array.from(currentEditTagsDiv.querySelectorAll('.tag')).map(tagSpan => tagSpan.textContent.replace(/x$/, '').trim())
+            // Pass updated saveEntryChanges callback
+            (entryId, element, getLoadedCb, displayCb, searchInput, filterTags, content, title, tags) => saveEntryChanges(
+                 entryId, element, getLoadedCb, displayCb, searchInput, filterTags, content, title, tags
             ),
             (entryId) => cancelEditMode(document.querySelector(`.entry[data-id="${entryId}"]`)),
             displayEntriesCallback,
@@ -478,8 +584,95 @@ export async function saveEntryChanges(entryId, entryElement, getLoadedEntriesCa
             getLoadedEntriesCallback,
             displayEntriesCallback
         );
+
     } catch (error) {
         console.error('Error updating entry in Firebase:', error);
-        throw error; // Let the caller handle the error
+        // Optionally, display an error message to the user
+        const entrySuccessMessage = document.getElementById('entry-success');
+        if (entrySuccessMessage) {
+            entrySuccessMessage.textContent = 'Failed to save changes.';
+            entrySuccessMessage.style.color = 'red'; // Or use a dedicated error element
+        }
+        // Revert to view mode if saving failed? Might be better to stay in edit mode to allow user to try again.
+        // cancelEditMode(entryElement);
+        // throw error; // Consider re-throwing if downstream logic depends on it
+    }
+}
+
+// --- New function to handle checkbox changes for list items ---
+async function handleTaskCheckboxChange(entryId, itemIndex, isCompleted, getLoadedEntriesCallback) {
+    console.log(`Checkbox changed for entry ID: ${entryId}, item index: ${itemIndex}, completed: ${isCompleted}`);
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+        console.error('Cannot update task status: No user logged in.');
+        return;
+    }
+
+    const loadedEntries = getLoadedEntriesCallback();
+    const entry = loadedEntries.find(e => e.id === entryId);
+
+    if (entry && entry.listItems && entry.listItems[itemIndex]) {
+        // Update the local loadedEntries array immediately for responsive UI
+        entry.listItems[itemIndex].completed = isCompleted;
+
+        // Update the display of this specific item
+        const entryElement = document.querySelector(`.entry[data-id="${entryId}"]`);
+        if (entryElement) {
+            const listItemSpan = entryElement.querySelector(`.list-item:nth-child(${itemIndex + 1}) .list-item-text`);
+            if (listItemSpan) {
+                if (isCompleted) {
+                    listItemSpan.classList.add('completed-task');
+                } else {
+                    listItemSpan.classList.remove('completed-task');
+                }
+            }
+             // Also update the checkbox itself in case the UI wasn't updated directly
+            const checkbox = entryElement.querySelector(`.list-item:nth-child(${itemIndex + 1}) input[type="checkbox"]`);
+            if (checkbox) {
+                checkbox.checked = isCompleted;
+            }
+        }
+
+        // Update the Firestore document
+        const entryRef = doc(db, `users/${currentUser.uid}/entries`, entryId);
+        try {
+            // It's safer to fetch the latest document before updating a nested array
+            const docSnap = await getDoc(entryRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.listItems && data.listItems[itemIndex]) {
+                    // Create a copy to avoid modifying the original array directly
+                    const updatedListItems = [...data.listItems];
+                    updatedListItems[itemIndex].completed = isCompleted;
+                    await updateDoc(entryRef, { listItems: updatedListItems });
+                    console.log(`Task completion status updated in Firebase for entry ${entryId}, item ${itemIndex}`);
+                } else {
+                    console.warn(`List item at index ${itemIndex} not found in Firestore for entry ${entryId}.`);
+                }
+            } else {
+                console.warn(`Entry ${entryId} not found in Firestore for task status update.`);
+            }
+        } catch (error) {
+            console.error(`Error updating task completion status in Firebase for entry ${entryId}, item ${itemIndex}:`, error);
+             // Revert the UI state if the update fails
+             if (entryElement) {
+                const listItemSpan = entryElement.querySelector(`.list-item:nth-child(${itemIndex + 1}) .list-item-text`);
+                if (listItemSpan) {
+                    if (!isCompleted) {
+                        listItemSpan.classList.add('completed-task');
+                    } else {
+                        listItemSpan.classList.remove('completed-task');
+                    }
+                }
+                const checkbox = entryElement.querySelector(`.list-item:nth-child(${itemIndex + 1}) input[type="checkbox"]`);
+                if (checkbox) {
+                    checkbox.checked = !isCompleted;
+                }
+            }
+             if (entry && entry.listItems && entry.listItems[itemIndex]) {
+                entry.listItems[itemIndex].completed = !isCompleted; // Revert local state
+             }
+            // Optionally, display an error message to the user
+        }
     }
 }
