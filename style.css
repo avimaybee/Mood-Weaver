@@ -712,4 +712,79 @@ button:hover {
 .ai-toggle-label {
     /* Add any specific styling for the label if needed, e.g., font-weight */
      font-weight: 500;
+}
+
+/* Add styles for the edit mode container */
+.entry-edit-mode {
+    padding: 20px; /* Add internal padding */
+    background-color: #f9f9f9; /* Subtle background color */
+    border: 1px solid var(--color-border); /* Add a border */
+    border-radius: 8px; /* Match border-radius of inputs */
+    margin-top: 15px; /* Add space above the edit area */
+    margin-bottom: 15px; /* Add space below the edit area */
+}
+
+/* Adjust spacing for elements within edit mode if necessary (review existing margins) */
+.entry-edit-mode .edit-title-input,
+.entry-edit-mode .edit-content-textarea,
+.entry-edit-mode .edit-tags-area {
+    margin-bottom: 15px; /* Ensure consistent spacing */
+}
+
+.entry-edit-mode .edit-tags-area .tag-input-container {
+    margin-bottom: 10px; /* Space between tag input and displayed tags */
+}
+
+/* Add specific styles for Save and Cancel buttons */
+.save-edit-button {
+    background-color: var(--color-primary-accent); /* Use primary accent for Save */
+    color: var(--color-container-background); /* White text */
+    /* Inherits padding, border, border-radius from general button */
+}
+
+.save-edit-button:hover {
+     background-color: var(--color-primary-accent-hover); /* Darker shade on hover */
+}
+
+.cancel-edit-button {
+    background-color: var(--color-border); /* Use border color for neutral Cancel */
+    color: var(--color-text-primary); /* Primary text color */
+    font-weight: 500; /* Match other text */
+    /* Inherits padding, border, border-radius from general button */
+}
+
+.cancel-edit-button:hover {
+    background-color: #c8c5bc; /* Darker shade of border color on hover */
+}
+
+/* Update the old ID-based style for cancel button to use the class */
+#cancel-edit-button {
+    /* Remove or comment out if moving to class-based styling */
+    /* background-color: var(--color-border); */
+    /* color: var(--color-text-primary); */
+    /* font-weight: 500; */
+}
+
+/* Ensure tag editing area within entry is well-styled (verify existing .tag, .tag-input-container styles apply correctly) */
+.entry-edit-mode .tag {
+    /* Inherits general .tag styles */
+}
+
+.entry-edit-mode .remove-tag {
+    /* Inherits general .remove-tag styles */
+}
+
+.entry-edit-mode .tag-input-container input[type="text"] {
+    /* Inherits general input[type="text"] styles */
+    margin-bottom: 0; /* Override general input margin if necessary for flex container */
+}
+
+.entry-edit-mode .add-edit-tag-button {
+    /* Inherits general button styles */
+    padding: 8px 12px; /* Adjust padding to fit better in the tag input container */
+    font-size: 14px; /* Adjust font size */
+}
+
+.entry-edit-mode .add-edit-tag-button i {
+     margin-right: 0; /* Remove margin on icon within this smaller button */
 } 

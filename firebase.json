@@ -24,6 +24,17 @@
       "**/node_modules/**",
       "functions/**" 
     ],
+    "headers": [
+      {
+        "source": "**/*.@(js|css|html)",
+        "headers": [
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          }
+        ]
+      }
+    ],
     "rewrites": [
       {
         "source": "**",

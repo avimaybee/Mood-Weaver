@@ -14,7 +14,7 @@ import { serverTimestamp, collection, query, orderBy, onSnapshot, addDoc, update
 // Import db instance
 import { db } from './firebase-config.js';
 // Import journal entry display functions
-import { displayEntries, formatUserFriendlyTimestamp } from './journalEntryDisplay.js';
+import { displayEntries, formatUserFriendlyTimestamp, enterEditMode, saveEntryChanges, cancelEditMode } from './journalEntryDisplay.js';
 // Import tagging, filtering, and searching functions and state
 import { selectedTags, activeFilterTags, defaultTags, renderSelectedTags, renderAvailableTags, renderFilterTags, toggleFilterTag, addTag, removeTag, initializeTaggingFilteringSearching } from './taggingFilteringSearching.js';
 
@@ -330,30 +330,46 @@ document.addEventListener('DOMContentLoaded', () => {
         );
     }
 
-    // Define dummy handlers for edit/save/cancel clicks for now
-    // These will be properly implemented later in journalEntryDisplay.js and passed via displayEntries
+    // Re-implement handlers for edit/save/cancel clicks
     function handleEditClick(entryId) {
         console.log(`Edit clicked for entry ID: ${entryId}`);
-        // Logic to switch entry with entryId to edit mode
         const entryElement = document.querySelector(`.entry[data-id="${entryId}"]`);
-        if (entryElement) {
-            enterEditMode(entryElement, loadedEntries.find(entry => entry.id === entryId)); // Pass the entry object
+        const entry = loadedEntries.find(e => e.id === entryId);
+        if (entryElement && entry) {
+            // Call the new enterEditMode function from journalEntryDisplay.js
+            enterEditMode(entryElement, entry, db, getCurrentUser(), () => loadedEntries, postDisplayCallback, searchInput, activeFilterTags);
         }
     }
 
     async function handleSaveClick(entryId) {
         console.log(`Save clicked for entry ID: ${entryId}`);
         const entryElement = document.querySelector(`.entry[data-id="${entryId}"]`);
-         if (entryElement) {
-            // Pass activeFilterTags from the script.js scope to saveEntryChanges
-            await saveEntryChanges(entryId, entryElement, db, getCurrentUser(), () => loadedEntries, displayEntries, searchInput, activeFilterTags);
-         }
+        const editModeDiv = entryElement ? entryElement.querySelector('.entry-edit-mode') : null;
+
+        if (entryElement && editModeDiv) {
+            const updatedContent = editModeDiv.querySelector('.edit-content-textarea').value.trim();
+            const updatedTitle = editModeDiv.querySelector('.edit-title-input').value.trim();
+            const currentEditTagsDiv = editModeDiv.querySelector('.current-edit-tags');
+            const updatedTags = [];
+            if (currentEditTagsDiv) {
+                currentEditTagsDiv.querySelectorAll('.tag').forEach(tagSpan => {
+                    const tagText = tagSpan.textContent.replace(/x$/, '').trim();
+                    if (tagText) {
+                        updatedTags.push(tagText);
+                    }
+                });
+            }
+
+            // Call the new saveEntryChanges function from journalEntryDisplay.js
+            await saveEntryChanges(entryId, entryElement, db, currentUser, () => loadedEntries, postDisplayCallback, searchInput, activeFilterTags, updatedContent, updatedTitle, updatedTags);
+        }
     }
 
     function handleCancelClick(entryId) {
         console.log(`Cancel clicked for entry ID: ${entryId}`);
         const entryElement = document.querySelector(`.entry[data-id="${entryId}"]`);
         if (entryElement) {
+            // Call the new cancelEditMode function from journalEntryDisplay.js
             cancelEditMode(entryElement);
         }
     }
