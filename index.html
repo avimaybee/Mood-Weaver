@@ -37,7 +37,12 @@
             <div id="user-info">
                 <img id="user-pfp" src="" alt="User Profile Picture" class="user-pfp-icon">
                 <p>Logged in as: <span id="user-email-display"></span></p>
-                <button id="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                <!-- Wrapper for Dark mode toggle and Logout button -->
+                <div class="user-info-right">
+                    <!-- Dark mode toggle button -->
+                    <button id="dark-mode-toggle" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
+                    <button id="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                </div>
             </div>
             <h2>My Journal</h2>
             <form id="journal-form">

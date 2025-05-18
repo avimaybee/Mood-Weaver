@@ -31,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const randomIndex = Math.floor(Math.random() * placeholderPhrases.length);
     journalEntryInput.placeholder = placeholderPhrases[randomIndex];
 
-    // Add event listener for the list mode toggle button
     if (listModeToggle) {
         listModeToggle.addEventListener('click', () => {
             isListMode = !isListMode;
@@ -39,55 +38,31 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isListMode) {
                 journalEntryInput.placeholder = "Enter list items, each on a new line...";
             } else {
-                 const randomIndex = Math.floor(Math.random() * placeholderPhrases.length);
-                 journalEntryInput.placeholder = placeholderPhrases[randomIndex];
+                 const newRandomIndex = Math.floor(Math.random() * placeholderPhrases.length);
+                 journalEntryInput.placeholder = placeholderPhrases[newRandomIndex];
             }
-            // Optionally, add/remove a class on journalEntryInput or its container for styling
             journalEntryInput.classList.toggle('list-mode-active', isListMode);
         });
     }
 
-    // Initialize authentication state observer from auth.js
     initializeAuth(
-        // Callback for user logged in
         (user) => {
             console.log('js/script.js received user logged in:', user.email);
             loadJournalEntries(user);
-
-            // Initialize tagging/filtering/searching after user is logged in
             initializeTaggingFilteringSearching(
                 handleTagClick,
                 (entries, activeFilters, searchInputElement, deleteCb, editCb, saveCb, cancelCb, displayEntriesCb, dbInst, currentUserObj, getLoadedCb) => {
                     displayEntries(
-                        entries,
-                        activeFilters,
-                        searchInputElement,
-                        deleteCb,
-                        editCb,
-                        saveCb,
-                        cancelCb,
-                        displayEntriesCb,
-                        dbInst,
-                        currentUserObj,
-                        getLoadedCb,
-                        displayEntriesCb
+                        entries, activeFilters, searchInputElement, deleteCb, editCb, saveCb, cancelCb,
+                        displayEntriesCb, dbInst, currentUserObj, getLoadedCb, displayEntriesCb
                     );
                 },
-                searchInput,
-                () => loadedEntries,
-                (entryId) => handleDeleteEntry(entryId, user, entrySuccessMessage),
-                handleEditClick,
-                handleSaveClick,
-                handleCancelClick,
-                db,
-                user,
-                () => activeFilterTags
+                searchInput, () => loadedEntries, (entryId) => handleDeleteEntry(entryId, user, entrySuccessMessage),
+                handleEditClick, handleSaveClick, handleCancelClick, db, user, () => activeFilterTags
             );
-
             selectedTags.length = 0;
             renderSelectedTags();
         },
-        // Callback for user logged out
         () => {
             console.log('js/script.js received user logged out');
             if (entriesListener) {
@@ -102,33 +77,50 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedTags.length = 0;
             renderSelectedTags();
             renderFilterTags(
-                loadedEntries,
-                displayEntries,
-                () => loadedEntries,
-                (entryId) => handleDeleteEntry(entryId, null, entrySuccessMessage),
-                handleEditClick,
-                handleSaveClick,
-                handleCancelClick,
-                db,
-                null
+                loadedEntries, displayEntries, () => loadedEntries, (entryId) => handleDeleteEntry(entryId, null, entrySuccessMessage),
+                handleEditClick, handleSaveClick, handleCancelClick, db, null
             );
             renderAvailableTags(
-                loadedEntries,
-                handleTagClick,
-                displayEntries,
-                () => loadedEntries,
-                (entryId) => handleDeleteEntry(entryId, null, entrySuccessMessage),
-                handleEditClick,
-                handleSaveClick,
-                handleCancelClick,
-                db,
-                null
+                loadedEntries, handleTagClick, displayEntries, () => loadedEntries, (entryId) => handleDeleteEntry(entryId, null, entrySuccessMessage),
+                handleEditClick, handleSaveClick, handleCancelClick, db, null
             );
         }
     );
 
-    // --- Journal Logic --- 
+    // --- Dark Mode Toggle Logic ---
+    const body = document.body;
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const moonIcon = '<i class="fas fa-moon"></i>';
+    const sunIcon = '<i class="fas fa-sun"></i>';
 
+    function applyTheme(isDark) {
+        if (isDark) {
+            body.classList.add('dark-mode');
+            if (darkModeToggle) darkModeToggle.innerHTML = sunIcon;
+            localStorage.setItem('theme', 'dark');
+        } else {
+            body.classList.remove('dark-mode');
+            if (darkModeToggle) darkModeToggle.innerHTML = moonIcon;
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('click', () => {
+            applyTheme(!body.classList.contains('dark-mode'));
+        });
+
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme === 'dark') {
+            applyTheme(true);
+        } else {
+            applyTheme(false); // Default to light
+        }
+        darkModeToggle.style.visibility = 'visible'; // Make toggle visible after JS setup
+    }
+    // End of Dark Mode Toggle Logic
+
+    // --- Journal Logic --- 
     journalForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const entryContent = journalEntryInput.value.trim();
@@ -155,19 +147,18 @@ document.addEventListener('DOMContentLoaded', () => {
             userId: currentUser.uid,
             timestamp: serverTimestamp(),
             tags: [...selectedTags],
-            entryType: isListMode ? 'list' : 'text' // Add entry type field
+            entryType: isListMode ? 'list' : 'text'
         };
 
-        let lines = []; // Declare lines in a broader scope
+        let lines = []; 
 
         if (isListMode) {
-            // Parse textarea content into list items
             lines = entryContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
             newEntryData.listItems = lines.map(line => ({ text: line, completed: false }));
-            newEntryData.content = ''; // Clear content for list entries
+            newEntryData.content = ''; 
         } else {
-            newEntryData.content = entryContent; // Keep content for text entries
-            newEntryData.listItems = []; // Ensure listItems is an empty array for text entries
+            newEntryData.content = entryContent;
+            newEntryData.listItems = []; 
         }
 
         let newEntryRef;
@@ -179,20 +170,18 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedTags.length = 0;
             renderSelectedTags();
 
-            // Prepare content for AI analysis based on entry type
             const contentForAI = isListMode 
-                ? lines.map(item => item.text).join('\n') // Join list item text for AI
-                : entryContent; // Use original content for text entries
+                ? lines.map(item => item).join('\n') // Join list item text for AI (was item.text)
+                : entryContent;
 
             if (contentForAI) {
                 entrySuccessMessage.textContent = isListMode ? 'List saved! Analyzing with AI...' : 'Entry saved! Analyzing with AI...';
-
                 const aiResponse = await fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         entryContent: contentForAI,
-                        entryType: isListMode ? 'list' : 'text' // Include entry type
+                        entryType: isListMode ? 'list' : 'text'
                     })
                 });
 
@@ -223,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         entrySuccessMessage.textContent = isListMode ? 'List saved and AI analysis complete!' : 'Entry saved and AI analysis complete!';
                     }
                 }
-            } else { /* if (contentForAI) is false */
+            } else {
                 entrySuccessMessage.textContent = isListMode ? 'Empty list saved.' : 'Empty entry saved.';
             }
         } catch (error) {
@@ -231,7 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!entrySuccessMessage.textContent.includes('failed') && !entrySuccessMessage.textContent.includes('issue')) {
                 entrySuccessMessage.textContent = 'Failed to process new entry fully.';
             }
-            // Update AI error if newEntryRef exists and the error is not from the AI analysis fetch itself
             if (newEntryRef && !error.toString().includes('AI analysis')) {
                 updateDoc(newEntryRef, { 
                     aiError: `Frontend error on new entry: ${error.message}`,
@@ -241,15 +229,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             saveEntryButton.disabled = false;
             journalEntryInput.value = '';
-            // Reset list mode toggle and state after saving
             isListMode = false;
             if (listModeToggle) {
                  listModeToggle.classList.remove('active');
             }
             journalEntryInput.classList.remove('list-mode-active');
-             const randomIndex = Math.floor(Math.random() * placeholderPhrases.length);
-             journalEntryInput.placeholder = placeholderPhrases[randomIndex];
-
+            const newRandomIndex = Math.floor(Math.random() * placeholderPhrases.length);
+            journalEntryInput.placeholder = placeholderPhrases[newRandomIndex];
             setTimeout(() => { entrySuccessMessage.textContent = ''; }, 7000);
         }
     });
@@ -269,27 +255,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const postDisplayCallback = (renderedEntries) => {
             console.log('postDisplayCallback executed from onSnapshot or filtering/searching after rendering');
             renderAvailableTags(
-                loadedEntries,
-                handleTagClick,
-                displayEntries,
-                () => loadedEntries,
-                (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage),
-                handleEditClick,
-                handleSaveClick,
-                handleCancelClick,
-                db,
-                currentUser
+                loadedEntries, handleTagClick, displayEntries, () => loadedEntries, (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage),
+                handleEditClick, handleSaveClick, handleCancelClick, db, currentUser
             );
             renderFilterTags(
-                loadedEntries,
-                displayEntries,
-                () => loadedEntries,
-                (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage),
-                handleEditClick,
-                handleSaveClick,
-                handleCancelClick,
-                db,
-                currentUser
+                loadedEntries, displayEntries, () => loadedEntries, (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage),
+                handleEditClick, handleSaveClick, handleCancelClick, db, currentUser
             );
             renderSelectedTags();
         };
@@ -297,22 +268,11 @@ document.addEventListener('DOMContentLoaded', () => {
         entriesListener = onSnapshot(entriesQuery, snapshot => {
             console.log(`Received ${snapshot.docs.length} entries from Firestore.`);
             loadedEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
             displayEntries(
-                loadedEntries,
-                activeFilterTags,
-                searchInput,
-                (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage),
-                handleEditClick,
-                handleSaveClick,
-                handleCancelClick,
-                postDisplayCallback,
-                db,
-                currentUser,
-                () => loadedEntries,
-                displayEntries
+                loadedEntries, activeFilterTags, searchInput, (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage),
+                handleEditClick, handleSaveClick, handleCancelClick, postDisplayCallback,
+                db, currentUser, () => loadedEntries, displayEntries
             );
-
             postDisplayCallback(loadedEntries);
         }, error => {
             console.error('Error fetching entries:', error);
@@ -332,20 +292,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const entryElement = document.querySelector(`.entry[data-id="${entryId}"]`);
         const entry = loadedEntries.find(e => e.id === entryId);
         if (entryElement && entry) {
-            enterEditMode(entryElement, entry, db, currentUser, () => loadedEntries, (entries, activeFilters, searchInputElement, deleteCb, editCb, saveCb, cancelCb, displayEntriesCb, dbInst, currentUserObj, getLoadedCb) => {
+            enterEditMode(entryElement, entry, db, currentUser, () => loadedEntries, 
+            (entries, activeFilters, searchInputElement, deleteCb, editCb, saveCb, cancelCb, displayEntriesCb, dbInst, currentUserObj, getLoadedCb) => {
                 displayEntries(
-                    entries,
-                    activeFilters,
-                    searchInputElement,
-                    deleteCb,
-                    editCb,
-                    saveCb,
-                    cancelCb,
-                    displayEntriesCb,
-                    dbInst,
-                    currentUserObj,
-                    getLoadedCb,
-                    displayEntriesCb
+                    entries, activeFilters, searchInputElement, deleteCb, editCb, saveCb, cancelCb, 
+                    displayEntriesCb, dbInst, currentUserObj, getLoadedCb, displayEntriesCb
                 );
             }, searchInput, activeFilterTags);
         }
@@ -368,31 +319,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 await saveEntryChanges(
-                    entryId,
-                    entryElement,
-                    db,
-                    () => loadedEntries,
+                    entryId, entryElement, db, () => loadedEntries, 
                     (entries, activeFilters, searchInputElement, deleteCb, editCb, saveCb, cancelCb, displayEntriesCb, dbInst, currentUserObj, getLoadedCb) => {
                         displayEntries(
-                            entries,
-                            activeFilters,
-                            searchInputElement,
-                            deleteCb,
-                            editCb,
-                            saveCb,
-                            cancelCb,
-                            displayEntriesCb,
-                            dbInst,
-                            currentUserObj,
-                            getLoadedCb,
-                            displayEntriesCb
+                            entries, activeFilters, searchInputElement, deleteCb, editCb, saveCb, cancelCb, 
+                            displayEntriesCb, dbInst, currentUserObj, getLoadedCb, displayEntriesCb
                         );
-                    },
-                    searchInput,
-                    activeFilterTags,
-                    updatedContent,
-                    updatedTitle,
-                    updatedTags
+                    }, 
+                    searchInput, activeFilterTags, updatedContent, updatedTitle, updatedTags
                 );
             } catch (error) {
                 console.error('Error in handleSaveClick:', error);
