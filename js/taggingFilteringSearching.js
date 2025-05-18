@@ -1,4 +1,4 @@
-import { handleDeleteEntry } from './script.js';
+import { handleDeleteEntry } from './firebaseUtils.js';
 import { displayEntries } from './journalEntryDisplay.js';
 import { doc, getDoc, collection, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 

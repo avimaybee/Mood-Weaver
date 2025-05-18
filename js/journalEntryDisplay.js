@@ -1,6 +1,7 @@
-import { handleDeleteEntry } from './script.js';
+import { handleDeleteEntry } from './firebaseUtils.js';
 import { updateDoc, doc, getDoc, collection, query, orderBy, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 import { getCurrentUser } from './auth.js';
+import { db } from './firebase-config.js';
 
 // Get DOM elements needed for this module
 const entriesList = document.getElementById('entries-list');
@@ -152,7 +153,7 @@ export function displayEntries(entriesToDisplay, activeFilterTags, searchInput, 
         editButton.dataset.id = entry.id;
         editButton.addEventListener('click', () => {
             console.log('Edit button clicked for entry:', entry.id);
-            enterEditMode(entryElement, entry, db, currentUser, getLoadedEntriesCallback, displayEntriesCallback, searchInput, safeFilterTags);
+            enterEditMode(entryElement, entry, currentUser, getLoadedEntriesCallback, displayEntriesCallback, searchInput, safeFilterTags);
         });
 
         const deleteButton = document.createElement('button');
@@ -304,7 +305,7 @@ function removeTagFromEdit(tagToRemove, currentEditTagsDiv) {
 }
 
 // Function to enter edit mode
-export function enterEditMode(entryElement, entry, db, currentUser, getLoadedEntriesCallback, displayEntriesCallback, searchInput, activeFilterTags) {
+export function enterEditMode(entryElement, entry, currentUser, getLoadedEntriesCallback, displayEntriesCallback, searchInput, activeFilterTags) {
     console.log('Entering edit mode for entry ID:', entry.id);
     const viewModeDiv = entryElement.querySelector('.entry-view-mode');
     const editModeDiv = entryElement.querySelector('.entry-edit-mode');
@@ -346,7 +347,7 @@ export function enterEditMode(entryElement, entry, db, currentUser, getLoadedEnt
         const updatedTitle = editTitleInput.value.trim();
         const updatedTags = Array.from(currentEditTagsDiv.querySelectorAll('.tag'))
             .map(tagSpan => tagSpan.textContent.replace(/x$/, '').trim());
-        await saveEntryChanges(entry.id, entryElement, db, getLoadedEntriesCallback, displayEntriesCallback, searchInput, activeFilterTags, updatedContent, updatedTitle, updatedTags);
+        await saveEntryChanges(entry.id, entryElement, getLoadedEntriesCallback, displayEntriesCallback, searchInput, activeFilterTags, updatedContent, updatedTitle, updatedTags);
     });
 
     cancelButton.addEventListener('click', () => cancelEditMode(entryElement));
@@ -381,7 +382,7 @@ export function cancelEditMode(entryElement) {
 }
 
 // Function to save entry changes
-export async function saveEntryChanges(entryId, entryElement, db, getLoadedEntriesCallback, displayEntriesCallback, searchInput, activeFilterTags, updatedContent, updatedTitle, updatedTags) {
+export async function saveEntryChanges(entryId, entryElement, getLoadedEntriesCallback, displayEntriesCallback, searchInput, activeFilterTags, updatedContent, updatedTitle, updatedTags) {
     console.log('Attempting to save changes for entry ID:', entryId);
     const currentUser = getCurrentUser();
     if (!currentUser || !currentUser.uid) {
@@ -449,11 +450,10 @@ export async function saveEntryChanges(entryId, entryElement, db, getLoadedEntri
             loadedEntries,
             activeFilterTags,
             searchInput,
-            (entryId) => handleDeleteEntry(entryId, currentUser, document.getElementById('entry-success'), db),
+            (entryId) => handleDeleteEntry(entryId, currentUser, document.getElementById('entry-success')),
             (entryId) => enterEditMode(
                 document.querySelector(`.entry[data-id="${entryId}"]`),
                 loadedEntries.find(e => e.id === entryId),
-                db,
                 currentUser,
                 getLoadedEntriesCallback,
                 displayEntriesCallback,
@@ -463,7 +463,6 @@ export async function saveEntryChanges(entryId, entryElement, db, getLoadedEntri
             (entryId) => saveEntryChanges(
                 entryId,
                 document.querySelector(`.entry[data-id="${entryId}"]`),
-                db,
                 getLoadedEntriesCallback,
                 displayEntriesCallback,
                 searchInput,

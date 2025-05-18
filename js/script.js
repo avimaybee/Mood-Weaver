@@ -3,6 +3,7 @@ import { serverTimestamp, collection, query, orderBy, onSnapshot, addDoc, update
 import { db } from './firebase-config.js';
 import { displayEntries, formatUserFriendlyTimestamp, enterEditMode, saveEntryChanges, cancelEditMode } from './journalEntryDisplay.js';
 import { selectedTags, activeFilterTags, defaultTags, renderSelectedTags, renderAvailableTags, renderFilterTags, toggleFilterTag, addTag, removeTag, initializeTaggingFilteringSearching } from './taggingFilteringSearching.js';
+import { handleDeleteEntry } from './firebaseUtils.js';
 
 // --- Variables --- 
 let entriesListener = null;
@@ -56,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 searchInput,
                 () => loadedEntries,
-                (entryId) => handleDeleteEntry(entryId, user, entrySuccessMessage, db),
+                (entryId) => handleDeleteEntry(entryId, user, entrySuccessMessage),
                 handleEditClick,
                 handleSaveClick,
                 handleCancelClick,
@@ -86,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadedEntries,
                 displayEntries,
                 () => loadedEntries,
-                (entryId) => handleDeleteEntry(entryId, null, entrySuccessMessage, db),
+                (entryId) => handleDeleteEntry(entryId, null, entrySuccessMessage),
                 handleEditClick,
                 handleSaveClick,
                 handleCancelClick,
@@ -98,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 handleTagClick,
                 displayEntries,
                 () => loadedEntries,
-                (entryId) => handleDeleteEntry(entryId, null, entrySuccessMessage, db),
+                (entryId) => handleDeleteEntry(entryId, null, entrySuccessMessage),
                 handleEditClick,
                 handleSaveClick,
                 handleCancelClick,
@@ -218,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 handleTagClick,
                 displayEntries,
                 () => loadedEntries,
-                (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage, db),
+                (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage),
                 handleEditClick,
                 handleSaveClick,
                 handleCancelClick,
@@ -229,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadedEntries,
                 displayEntries,
                 () => loadedEntries,
-                (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage, db),
+                (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage),
                 handleEditClick,
                 handleSaveClick,
                 handleCancelClick,
@@ -247,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadedEntries,
                 activeFilterTags,
                 searchInput,
-                (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage, db),
+                (entryId) => handleDeleteEntry(entryId, currentUser, entrySuccessMessage),
                 handleEditClick,
                 handleSaveClick,
                 handleCancelClick,
@@ -353,23 +354,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
-
-export async function handleDeleteEntry(entryId, currentUser, entrySuccessMessage, dbInstance) {
-    if (!currentUser) return;
-    console.log('Attempting to delete entry ID:', entryId);
-
-    if (confirm("Are you sure you want to delete this entry? This action cannot be undone.")) {
-        entrySuccessMessage.textContent = 'Deleting entry...';
-        try {
-            await deleteDoc(doc(dbInstance, 'users', currentUser.uid, 'entries', entryId));
-            console.log('Journal entry deleted with ID:', entryId);
-            entrySuccessMessage.textContent = 'Entry deleted successfully.';
-        } catch (error) {
-            console.error('Error deleting journal entry:', error);
-            alert('Error deleting entry. Please try again.');
-            entrySuccessMessage.textContent = 'Failed to delete entry.';
-        } finally {
-            setTimeout(() => { entrySuccessMessage.textContent = ''; }, 5000);
-        }
-    }
-}
