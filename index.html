@@ -48,8 +48,15 @@
                 <div id="tag-input-area">
                     <label for="tag-input"><i class="fas fa-tags"></i> Tags:</label>
                     <div class="tag-input-container">
+                        <button type="button" id="edit-available-tags-button" title="Edit Available Tags" class="icon-button">
+                            <i class="fas fa-edit"></i>
+                            <span class="visually-hidden">Edit Available Tags</span>
+                        </button>
                         <input type="text" id="tag-input" placeholder="Add tags (e.g., project, ideas)">
-                        <button type="button" id="add-tag-button" title="Add Tag"><i class="fas fa-check"></i></button>
+                        <button type="button" id="add-tag-button" title="Add Tag">
+                            <i class="fas fa-check"></i>
+                            <span class="visually-hidden">Add Tag</span>
+                        </button>
                     </div>
                     <div id="suggested-tags"></div> <!-- For AI suggestions later -->
                     <div id="selected-tags"></div>
@@ -77,12 +84,24 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
-    <!-- Update with your Firebase project's config object -->
-    <!-- <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script> -->
-    <!-- <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> -->
-    <!-- <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> -->
+    <!-- Firebase Config (already imports Firebase SDKs) -->
+    <script src="js/firebase-config.js" type="module"></script>
 
+    <!-- Add a small CSS rule for accessibility -->
+    <style>
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+    </style>
+
+    <!-- Main script -->
     <script src="js/script.js" type="module"></script>
 </body>
-</html> 
+</html>

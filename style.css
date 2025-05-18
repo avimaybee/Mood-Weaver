@@ -18,33 +18,33 @@
 
 body {
     font-family: var(--font-primary);
-    font-size: 17px; /* Increased base font size */
+    font-size: 17px;
     margin: 0;
-    padding: 30px 20px; /* Increased top/bottom padding */
+    padding: 30px 20px;
     background-color: var(--color-background);
     color: var(--color-text-primary);
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Align items to the start for longer content */
+    align-items: flex-start;
     min-height: 100vh;
-    line-height: 1.6; /* Default line height for body text */
+    line-height: 1.6;
 }
 
 #app {
     background-color: var(--color-container-background);
-    padding: 35px; /* Increased padding */
-    border-radius: 16px; /* Softer radius */
-    box-shadow: 0 8px 30px var(--shadow-color); /* More pronounced but soft shadow */
+    padding: 35px;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px var(--shadow-color);
     width: 100%;
-    max-width: 700px; /* Slightly wider */
-    box-sizing: border-box; /* Include padding and border in element's total width and height */
+    max-width: 700px;
+    box-sizing: border-box;
 }
 
-h1, h2, h3 { /* Added h1 for completeness */
+h1, h2, h3 {
     color: var(--color-text-primary);
     text-align: center;
-    font-weight: 700; /* Bolder headings */
-    line-height: 1.3; /* Tighter line height for headings */
+    font-weight: 700;
+    line-height: 1.3;
 }
 
 h1 {
@@ -53,70 +53,70 @@ h1 {
 }
 
 h2 {
-    margin-bottom: 20px; /* Increased bottom margin for more separation */
-    font-size: 1.8em; /* Increased font size for "Your Entries" */
+    margin-bottom: 20px;
+    font-size: 1.8em;
 }
 
-h3.entry-ai-title { /* Specific styling for AI title moved from later */
+h3.entry-ai-title {
     margin-top: 0;
     margin-bottom: 15px;
-    font-size: 1.6em; /* Increased font size for AI title */
+    font-size: 1.6em;
     color: var(--color-text-primary);
-    font-weight: 600; /* Made AI title bolder */
+    font-weight: 600;
 }
 
 input[type="email"],
 input[type="password"],
 textarea {
-    width: 100%; /* Make inputs take full width */
-    padding: 14px; /* Increased padding */
-    margin-bottom: 15px; /* Adjusted margin */
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 15px;
     border: 1px solid var(--color-border);
-    border-radius: 8px; /* Softer radius */
+    border-radius: 8px;
     box-sizing: border-box;
     font-family: var(--font-primary);
     color: var(--color-text-primary);
-    background-color: #fdfdfd; /* Very light off-white for inputs */
-    font-size: 17px; /* Match body font size */
+    background-color: #fdfdfd;
+    font-size: 17px;
 }
 
 input[type="email"]:focus,
 input[type="password"]:focus,
 textarea:focus {
     outline: none;
-    border-color: var(--color-primary-accent-hover); /* Use darker hover color for focus */
-    box-shadow: 0 0 0 3px rgba(176, 196, 177, 0.4); /* More visible focus ring */
+    border-color: var(--color-primary-accent-hover);
+    box-shadow: 0 0 0 3px rgba(176, 196, 177, 0.4);
 }
 
 button {
-    background-color: #9cb69d; /* Using the darker hover color for more saturation */
-    color: var(--color-container-background); /* White text on accent buttons */
-    padding: 14px 20px; /* Adjusted padding */
+    background-color: #9cb69d;
+    color: var(--color-container-background);
+    padding: 14px 20px;
     border: none;
-    border-radius: 8px; /* Softer radius */
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 17px; /* Match body font size */
-    font-weight: 600; /* Medium weight for buttons */
+    font-size: 17px;
+    font-weight: 600;
     width: 100%;
-    margin-bottom: 15px; /* Increased margin */
-    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth transition */
+    margin-bottom: 15px;
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 button i {
-    margin-right: 8px; /* Add space between icon and text */
+    margin-right: 8px;
 }
 
 button:hover {
     background-color: var(--color-primary-accent-hover);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow on hover */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 #logout-button {
     background-color: var(--color-secondary-accent);
-    color: var(--color-text-primary); /* Darker text on light pink */
+    color: var(--color-text-primary);
     width: auto;
     float: right;
-    padding: 8px 15px; /* Smaller padding for logout */
+    padding: 8px 15px;
     font-size: 14px;
 }
 
@@ -152,7 +152,7 @@ button:hover {
 }
 
 #journal-form {
-    margin-bottom: 25px; /* Increased margin */
+    margin-bottom: 25px;
 }
 
 /* Tag input area styles */
@@ -168,25 +168,25 @@ button:hover {
 
 #tag-input-area .tag-input-container {
     display: flex;
-    gap: 10px; /* Space between input and button */
-    align-items: center; /* Vertically align items */
+    gap: 10px;
+    align-items: center;
     margin-bottom: 10px;
 }
 
 #tag-input-area .tag-input-container input[type="text"] {
-    flex-grow: 1; /* Allow input to fill available space */
-    margin-bottom: 0; /* Remove bottom margin as handled by container */
+    flex-grow: 1;
+    margin-bottom: 0;
 }
 
 #add-tag-button {
-    width: auto; /* Allow button to size based on content */
-    padding: 10px 15px; /* Adjust padding for size */
-    font-size: 16px; /* Adjust font size */
-    margin-bottom: 0; /* Remove bottom margin */
-    background-color: var(--color-primary-accent); /* Use primary accent color */
-    color: var(--color-container-background); /* White icon */
-    border-radius: 4px; /* Match input border-radius */
-    flex-shrink: 0; /* Prevent button from shrinking */
+    width: auto;
+    padding: 10px 15px;
+    font-size: 16px;
+    margin-bottom: 0;
+    background-color: var(--color-primary-accent);
+    color: var(--color-container-background);
+    border-radius: 4px;
+    flex-shrink: 0;
 }
 
 #add-tag-button:hover {
@@ -211,26 +211,24 @@ button:hover {
 }
 
 #selected-tags,
-#suggested-tags {
+#suggested-tags,
+#available-tags,
+.entry-tags {
     margin-top: 5px;
-}
-
-#available-tags {
-    margin-top: 10px;
-    border-top: 1px solid var(--color-border);
-    padding-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .available-tags .tag {
     cursor: pointer;
-    background-color: var(--color-border); /* Use a neutral background */
-    color: var(--color-text-primary); /* Use primary text color */
+    background-color: var(--color-border);
+    color: var(--color-text-primary);
     transition: background-color 0.2s ease-in-out;
 }
 
 .available-tags .tag:hover {
-    background-color: var(--color-primary-accent); /* Highlight on hover */
-    color: var(--color-container-background); /* White text on hover */
+    background-color: var(--color-primary-accent);
+    color: var(--color-container-background);
 }
 
 .tag {
@@ -250,23 +248,23 @@ button:hover {
     font-weight: bold;
 }
 
-#entries-list .entry p { /* This might be redundant if .entry styling is comprehensive */
-    margin: 8px 0; /* Adjusted margin */
+#entries-list .entry p {
+    margin: 8px 0;
 }
 
-#entries-list .entry .timestamp { /* Merged with general .timestamp below */
-    font-size: 0.85em; /* Slightly larger */
+#entries-list .entry .timestamp {
+    font-size: 0.85em;
     color: var(--color-text-secondary);
 }
 
-#entries-list .entry .mood-score { /* This class is no longer used, can be removed if confirmed */
+#entries-list .entry .mood-score {
     font-weight: bold;
     color: var(--color-text-primary);
 }
 
 #user-info {
-    margin-bottom: 25px; /* Increased margin */
-    padding-bottom: 15px; /* Increased padding */
+    margin-bottom: 25px;
+    padding-bottom: 15px;
     border-bottom: 1px solid var(--color-border);
     overflow: hidden;
 }
@@ -278,34 +276,33 @@ button:hover {
 }
 
 .user-pfp-icon {
-    width: 48px; /* Set size to 48x48 pixels */
-    height: 48px; /* Set size to 48x48 pixels */
-    border-radius: 50%; /* Make it round */
-    margin-right: 10px; /* Space between icon and text */
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin-right: 10px;
     vertical-align: middle;
-    object-fit: cover; /* Ensure the image covers the area without distortion */
+    object-fit: cover;
 }
 
 .entry {
-    background-color: var(--color-container-background); /* Reverted to White background */
+    background-color: var(--color-container-background);
     border: 1px solid var(--color-border);
-    padding: 25px; /* Increased padding */
-    margin-bottom: 30px; /* Increased margin */
-    border-radius: 10px; /* Softer radius */
-    box-shadow: 0 4px 12px var(--shadow-color); /* More subtle shadow for entries */
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Add hover effect transitions */
+    padding: 25px;
+    margin-bottom: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 .entry:hover {
-     transform: translateY(-3px); /* Lift effect on hover */
-     box-shadow: 0 6px 16px var(--shadow-color); /* Slightly larger shadow on hover */
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px var(--shadow-color);
 }
 
 .entry-tags {
-    margin-top: 15px; /* Increased margin from content */
+    margin-top: 15px;
     font-size: 0.9em;
     color: var(--color-text-secondary);
-    /* font-style: italic; */ /* Removed italic */
 }
 
 .entry-tags .tag {
@@ -316,42 +313,42 @@ button:hover {
     border-radius: 4px;
     margin-right: 5px;
     margin-bottom: 5px;
-    font-size: 0.9em; /* Keep tag font size consistent */
-    font-style: normal; /* Ensure tags themselves are not italic */
+    font-size: 0.9em;
+    font-style: normal;
 }
 
 .entry-content {
-    margin-bottom: 15px; /* Increased margin */
+    margin-bottom: 15px;
     white-space: pre-wrap;
-    line-height: 1.6; /* Improved readability */
+    line-height: 1.6;
     color: var(--color-text-primary);
 }
 
-.timestamp { /* General timestamp styling */
-    font-size: 0.9em; /* Slightly larger timestamp */
+.timestamp {
+    font-size: 0.9em;
     color: var(--color-text-secondary);
     display: block;
-    margin-bottom: 12px; /* Increased margin */
-    margin-top: 8px; /* Added small top margin for spacing from content above */
+    margin-bottom: 12px;
+    margin-top: 8px;
 }
 
 .ai-insights {
-    background-color: #fAfBF8; /* Reverted to very light off-white */
-    border: 1px solid var(--color-border); /* Reverted to  Light Grayish Beige border */
-    padding: 20px; /* Increased padding */
-    margin-top: 20px; /* Increased margin */
-    border-radius: 8px; /* Softer radius */
-    box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.05); /* Inner shadow for depth */
+    background-color: #fAfBF8;
+    border: 1px solid var(--color-border);
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.05);
 }
 
 .ai-insights p {
-    margin: 10px 0; /* Increased margin */
-    line-height: 1.6; /* Standardized line height with entry-content */
+    margin: 10px 0;
+    line-height: 1.6;
 }
 
 .ai-greeting {
     font-style: italic;
-    color: var(--color-text-secondary); /* Reverted to secondary text color */
+    color: var(--color-text-secondary);
     font-weight: 500;
 }
 
@@ -365,91 +362,88 @@ button:hover {
 
 .ai-observation p,
 .ai-sentiment-analysis p {
-    color: var(--color-text-primary); /* Reverted */
-    font-weight: 500; /* Medium weight for better readability of these sections */
+    color: var(--color-text-primary);
+    font-weight: 500;
 }
 
 .ai-reflective-prompt {
-    color: var(--color-text-primary); /* Reverted */
-    font-weight: 600; /* Bold for prompts */
+    color: var(--color-text-primary);
+    font-weight: 600;
     margin-top: 10px;
 }
 
-.ai-score { /* This class is no longer used for display but keeping style if it returns */
+.ai-score {
     font-weight: bold;
     color: var(--color-text-primary);
 }
 
 .ai-timestamp {
-    font-size: 0.75em; 
-    color: var(--color-text-secondary); /* Reverted */
-    margin-top: 10px; 
+    font-size: 0.75em;
+    color: var(--color-text-secondary);
+    margin-top: 10px;
 }
 
 .ai-error {
-    color: var(--color-error); /* Reverted */
-    font-weight: 500; /* Reverted font-weight */
+    color: var(--color-error);
+    font-weight: 500;
 }
 
 .ai-processing, .ai-unavailable {
-    color: var(--color-text-secondary); /* Reverted */
+    color: var(--color-text-secondary);
     font-style: italic;
 }
 
 .entry-controls {
     display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
-    gap: 10px; /* Space between buttons */
-    margin-top: 0; /* Remove top margin as spacing is handled by .entry-bottom-row */
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 0;
 }
 
 .entry-bottom-row {
-    display: flex; /* Use flexbox for alignment */
-    align-items: center; /* Vertically align items */
-    justify-content: space-between; /* Distribute space between items */
-    margin-top: 15px; /* Add some space above the controls */
-    padding-top: 10px; /* Add some space below the separator line */
-    border-top: 1px solid var(--color-border); /* Add the separator back */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid var(--color-border);
 }
 
 .entry-bottom-row .entry-tags {
-    flex-grow: 1; /* Allow tags to take up available space */
-    margin-right: 10px; /* Space between tags and controls */
-    /* Remove any conflicting margin-bottom if present */
+    flex-grow: 1;
+    margin-right: 10px;
     margin-bottom: 0;
 }
 
 .entry-bottom-row .entry-controls {
-    display: flex; /* Use flexbox for the buttons within controls */
-    gap: 10px; /* Space between edit and delete buttons */
-    margin-right: 10px; /* Space between controls and toggle button */
-    /* Remove any conflicting margin-bottom if present */
+    display: flex;
+    gap: 10px;
+    margin-right: 10px;
     margin-bottom: 0;
 }
 
 .entry-bottom-row .entry-controls button {
-    margin-bottom: 0; /* Remove bottom margin from buttons in this context */
-    padding: 8px 15px; /* Adjust button padding for this row */
-    font-size: 14px; /* Adjust button font size */
+    margin-bottom: 0;
+    padding: 8px 15px;
+    font-size: 14px;
 }
 
 .entry-bottom-row .ai-toggle-button {
-     /* Remove any conflicting margin-bottom if present */
     margin-bottom: 0;
-    flex-shrink: 0; /* Prevent button from shrinking */
+    flex-shrink: 0;
 }
 
 .entry-tags .tag {
-    margin-bottom: 0; /* Remove bottom margin from tags in this row */
+    margin-bottom: 0;
 }
 
 .edit-entry-button, .delete-entry-button {
-    padding: 10px 15px; /* Slightly larger padding for action buttons */
+    padding: 10px 15px;
     font-size: 15px;
-    width: auto; /* Fit content */
-    margin-bottom: 0; /* Remove bottom margin as they are in a flex container */
-    border-radius: 6px; /* Softer radius */
-    transition: background-color 0.2s ease-in-out; /* Smooth transition */
+    width: auto;
+    margin-bottom: 0;
+    border-radius: 6px;
+    transition: background-color 0.2s ease-in-out;
 }
 
 .edit-entry-button {
@@ -471,27 +465,27 @@ button:hover {
 }
 
 #cancel-edit-button {
-    background-color: var(--color-border); /* Using border color for a neutral look */
+    background-color: var(--color-border);
     color: var(--color-text-primary);
     font-weight: 500;
 }
 
 #cancel-edit-button:hover {
-    background-color: #c8c5bc; /* Darker shade of border color */
+    background-color: #c8c5bc;
 }
 
 #journal-form.edit-mode textarea {
-    border-left: 3px solid var(--color-primary-accent); /* Indicate edit mode */
+    border-left: 3px solid var(--color-primary-accent);
 }
 
 .form-button-group {
     display: flex;
-    gap: 10px; /* Space between buttons in the group */
-    margin-top: 15px; /* Increased margin */
+    gap: 10px;
+    margin-top: 15px;
 }
 
 .form-button-group button {
-    flex-grow: 1; /* Allow buttons to grow and fill space */
+    flex-grow: 1;
 }
 
 .form-button-group #save-entry-button {
@@ -501,111 +495,108 @@ button:hover {
 .form-button-group #cancel-edit-button {
     background-color: var(--color-border);
     color: var(--color-text-primary);
-    /* flex-grow: 0; if you want it to be smaller */
 }
 
 .form-button-group #cancel-edit-button:hover {
-    background-color: #c8c5bc; /* Darker shade of border color */
+    background-color: #c8c5bc;
 }
 
-/* Ensure single button in group takes full width if needed */
 .form-button-group #save-entry-button:only-child {
     width: 100%;
 }
 
-/* --- Responsive Adjustments --- */
-
+/* Responsive Adjustments */
 @media (max-width: 600px) {
     body {
-        padding: 20px 10px; /* Adjust padding */
-        align-items: stretch; /* Stretch to fill width */
+        padding: 20px 10px;
+        align-items: stretch;
     }
 
     #app {
-        padding: 20px; /* Adjust container padding */
-        max-width: 100%; /* Allow container to fill width */
-        border-radius: 12px; /* Ensure rounded corners on smaller screens */
-        box-shadow: none; /* Optional: remove box shadow on very small screens */
+        padding: 20px;
+        max-width: 100%;
+        border-radius: 12px;
+        box-shadow: none;
     }
 
     h1 {
-        font-size: 1.6em; /* Slightly smaller heading */
+        font-size: 1.6em;
         margin-bottom: 15px;
     }
 
     h2 {
-        font-size: 1.4em; /* Slightly smaller subheading */
+        font-size: 1.4em;
         margin-bottom: 15px;
     }
 
     h3.entry-ai-title {
-        font-size: 1.2em; /* Slightly smaller AI title */
+        font-size: 1.2em;
         margin-bottom: 10px;
     }
 
     input[type="email"],
     input[type="password"],
     textarea {
-        padding: 12px; /* Adjust input padding */
-        margin-bottom: 12px; /* Adjust input margin */
+        padding: 12px;
+        margin-bottom: 12px;
     }
 
     button {
-        padding: 12px 15px; /* Adjust button padding */
+        padding: 12px 15px;
         font-size: 16px;
     }
 
     #logout-button {
-        padding: 5px 10px; /* Smaller logout button */
+        padding: 5px 10px;
         font-size: 12px;
     }
 
     .entry {
-        padding: 20px; /* Adjust entry padding */
-        margin-bottom: 20px; /* Adjust entry margin */
-        border-radius: 6px; /* Slightly smaller radius for entries */
-        box-shadow: none; /* Optional: remove entry shadow */
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 6px;
+        box-shadow: none;
     }
 
     .entry-content {
-        margin-bottom: 10px; /* Reduce content margin */
-        line-height: 1.5; /* Slightly tighter line height */
+        margin-bottom: 10px;
+        line-height: 1.5;
     }
 
     .timestamp {
-        font-size: 0.8em; /* Slightly smaller timestamp */
+        font-size: 0.8em;
         margin-bottom: 8px;
     }
 
     .ai-insights {
-        padding: 15px; /* Adjust AI insights padding */
-        margin-top: 15px; /* Adjust AI insights margin */
-        border-radius: 6px; /* Slightly smaller radius for AI insights */
-        box-shadow: none; /* Optional: remove inner shadow */
+        padding: 15px;
+        margin-top: 15px;
+        border-radius: 6px;
+        box-shadow: none;
     }
 
     .ai-insights p {
-        margin: 8px 0; /* Adjust AI insights paragraph margin */
+        margin: 8px 0;
     }
 
     .entry-controls button {
-        width: auto; /* Allow control buttons to size based on content */
-        padding: 8px 12px; /* Adjust padding for control buttons */
+        width: auto;
+        padding: 8px 12px;
         font-size: 13px;
         margin-bottom: 5px;
     }
 
     .form-button-group button {
-        padding: 12px 15px; /* Ensure form buttons are still reasonably sized */
+        padding: 12px 15px;
         font-size: 16px;
     }
 }
 
 /* Integrated Search and Filter Area Styles */
 #search-filter-area {
-    margin-bottom: 20px; /* Space below the combined area */
-    padding: 15px; /* Padding inside the area */
-    background-color: #f8f8f8; /* Light background, inherited from old filter area */
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f8f8;
     border: 1px solid var(--color-border);
     border-radius: 8px;
 }
@@ -614,21 +605,21 @@ button:hover {
     display: block;
     margin-bottom: 5px;
     font-weight: 600;
-    color: var(--color-text-primary); /* Match other labels */
-    font-size: 1.1em; /* Match filter heading size */
+    color: var(--color-text-primary);
+    font-size: 1.1em;
 }
 
 #search-filter-area #search-input {
-    width: 100%; /* Ensure input takes full width */
-    padding: 14px; /* Match other input padding */
+    width: 100%;
+    padding: 14px;
     border: 1px solid var(--color-border);
-    border-radius: 8px; /* Match other input border-radius */
+    border-radius: 8px;
     box-sizing: border-box;
     font-family: var(--font-primary);
     color: var(--color-text-primary);
-    background-color: #fff; /* Slightly lighter background for input */
-    font-size: 17px; /* Match other input font size */
-    margin-bottom: 15px; /* Space between input and tags list */
+    background-color: #fff;
+    font-size: 17px;
+    margin-bottom: 15px;
 }
 
 #search-filter-area #search-input:focus {
@@ -637,135 +628,129 @@ button:hover {
     box-shadow: 0 0 0 3px rgba(176, 196, 177, 0.4);
 }
 
-/* Styles for the filter tags list within the combined area */
 #search-filter-area #filter-tags-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px; /* Space between filter tags */
+    gap: 8px;
 }
 
 #search-filter-area #filter-tags-list .tag {
     cursor: pointer;
-    background-color: var(--color-border); /* Neutral background for filter tags */
+    background-color: var(--color-border);
     color: var(--color-text-primary);
     transition: background-color 0.2s ease-in-out;
 }
 
 #search-filter-area #filter-tags-list .tag.selected {
-    background-color: var(--color-primary-accent); /* Highlight selected filter tags */
+    background-color: var(--color-primary-accent);
     color: var(--color-container-background);
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Added for better visibility */
 }
 
 #search-filter-area #filter-tags-list .tag:hover:not(.selected) {
-    background-color: var(--color-primary-accent-hover); /* Hover effect for unselected tags */
+    background-color: var(--color-primary-accent-hover);
     color: var(--color-container-background);
 }
 
 /* Styles for expandable AI insights */
 .ai-insights-container {
-    max-height: 0; /* Initially hide the container */
-    overflow: hidden; /* Hide overflowing content */
-    transition: max-height 0.3s ease-out, opacity 0.3s ease-out; /* Smooth transition for height and opacity */
-    opacity: 0; /* Start with opacity 0 */
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    opacity: 0;
 }
 
 .entry.expanded .ai-insights-container {
-    max-height: 500px; /* Set a max-height to allow expansion (adjust if needed) */
-    opacity: 1; /* Make visible */
-    margin-top: 20px; /* Add space above the expanded section */
+    max-height: 500px;
+    opacity: 1;
+    margin-top: 20px;
 }
 
 .ai-toggle-button {
     cursor: pointer;
-    color: var(--color-text-secondary); /* Use secondary text color for icon/label */
-    font-size: 0.9em; /* Slightly smaller font size */
-    display: flex; /* Use flexbox to align icon and text */
-    align-items: center; /* Vertically center icon and text */
+    color: var(--color-text-secondary);
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
     transition: color 0.2s ease-in-out;
-    /* Remove any conflicting margin-bottom if present */
     margin-bottom: 0;
-    flex-shrink: 0; /* Prevent button from shrinking */
+    flex-shrink: 0;
 }
 
 .ai-toggle-button:hover {
-    color: var(--color-text-primary); /* Darker color on hover */
+    color: var(--color-text-primary);
 }
 
 .entry.expanded .ai-toggle-button {
-    color: var(--color-primary-accent); /* Highlight when expanded */
+    color: var(--color-primary-accent);
 }
 
 .entry.expanded .ai-toggle-button:hover {
-    color: var(--color-primary-accent-hover); /* Darker highlight on hover when expanded */
+    color: var(--color-primary-accent-hover);
 }
 
 .ai-toggle-button i {
-    margin-right: 5px; /* Add space between icon and text */
-    font-size: 1em; /* Ensure icon is not affected by parent font-size */
+    margin-right: 5px;
+    font-size: 1em;
 }
 
 .ai-icon-sparkles {
-    margin-left: 5px; /* Add space between arrow icon and sparkles icon */
-    color: var(--color-secondary-accent); /* Style the sparkles icon */
+    margin-left: 5px;
+    color: var(--color-secondary-accent);
 }
 
 .ai-toggle-label {
-    /* Add any specific styling for the label if needed, e.g., font-weight */
-     font-weight: 500;
+    font-weight: 500;
 }
 
 /* Add styles for the edit mode container */
 .entry-edit-mode {
-    padding: 20px; /* Add internal padding */
-    background-color: #f9f9f9; /* Subtle background color */
-    border: 1px solid var(--color-border); /* Add a border */
-    border-radius: 8px; /* Match border-radius of inputs */
-    margin-top: 15px; /* Add space above the edit area */
-    margin-bottom: 15px; /* Add space below the edit area */
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    margin-top: 15px;
+    margin-bottom: 15px;
 }
 
-/* Adjust spacing for elements within edit mode if necessary (review existing margins) */
 .entry-edit-mode .edit-title-input,
 .entry-edit-mode .edit-content-textarea,
 .entry-edit-mode .edit-tags-area {
-    margin-bottom: 15px; /* Ensure consistent spacing */
+    margin-bottom: 15px;
 }
 
 .entry-edit-mode .edit-tags-area .tag-input-container {
-    margin-bottom: 10px; /* Space between tag input and displayed tags */
+    margin-bottom: 10px;
 }
 
 /* Add specific styles for Save and Cancel buttons */
 .save-edit-button {
-    background-color: var(--color-primary-accent); /* Use primary accent for Save */
-    color: var(--color-container-background); /* White text */
-    /* Inherits padding, border, border-radius from general button */
+    background-color: var(--color-primary-accent);
+    color: var(--color-container-background);
 }
 
 .save-edit-button:hover {
-     background-color: var(--color-primary-accent-hover); /* Darker shade on hover */
+    background-color: var(--color-primary-accent-hover);
 }
 
 .cancel-edit-button {
-    background-color: var(--color-border); /* Use border color for neutral Cancel */
-    color: var(--color-text-primary); /* Primary text color */
-    font-weight: 500; /* Match other text */
-    /* Inherits padding, border, border-radius from general button */
+    background-color: var(--color-border);
+    color: var(--color-text-primary);
+    font-weight: 500;
 }
 
 .cancel-edit-button:hover {
-    background-color: #c8c5bc; /* Darker shade of border color on hover */
+    background-color: #c8c5bc;
 }
 
-/* Update the old ID-based style for cancel button to use the class */
 #cancel-edit-button {
-    /* Remove or comment out if moving to class-based styling */
-    /* background-color: var(--color-border); */
-    /* color: var(--color-text-primary); */
-    /* font-weight: 500; */
+    /* Remove if fully transitioning to class-based styling */
+    background-color: var(--color-border);
+    color: var(--color-text-primary);
+    font-weight: 500;
 }
 
-/* Ensure tag editing area within entry is well-styled (verify existing .tag, .tag-input-container styles apply correctly) */
 .entry-edit-mode .tag {
     /* Inherits general .tag styles */
 }
@@ -775,16 +760,122 @@ button:hover {
 }
 
 .entry-edit-mode .tag-input-container input[type="text"] {
-    /* Inherits general input[type="text"] styles */
-    margin-bottom: 0; /* Override general input margin if necessary for flex container */
+    margin-bottom: 0;
 }
 
 .entry-edit-mode .add-edit-tag-button {
-    /* Inherits general button styles */
-    padding: 8px 12px; /* Adjust padding to fit better in the tag input container */
-    font-size: 14px; /* Adjust font size */
+    padding: 8px 12px;
+    font-size: 14px;
 }
 
 .entry-edit-mode .add-edit-tag-button i {
-     margin-right: 0; /* Remove margin on icon within this smaller button */
-} 
+    margin-right: 0;
+}
+
+#tag-input-area .icon-button {
+    width: auto;
+    padding: 10px;
+    margin-bottom: 0;
+    background-color: transparent;
+    color: var(--color-text-secondary);
+    border: none;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+#tag-input-area .icon-button:hover {
+    background-color: var(--color-border);
+    box-shadow: none;
+}
+
+#tag-input-area .tag-input-container .icon-button {
+    width: auto;
+    padding: 10px;
+    margin-bottom: 0;
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease-in-out;
+}
+
+#tag-input-area .tag-input-container .icon-button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Updated styles for available tags and remove buttons */
+#available-tags .tag .remove-tag-available {
+    display: none;
+    margin-left: 5px;
+    font-weight: bold;
+    color: var(--color-error);
+    cursor: pointer;
+}
+
+#available-tags .tag .remove-tag-available:hover {
+    text-decoration: underline;
+}
+
+#available-tags.editing-active .tag .remove-tag-available {
+    display: inline-block;
+}
+
+#selected-tags,
+#available-tags {
+    display: flex;
+}
+
+#edit-available-tags-button {
+    width: auto;
+    padding: 8px; /* Reduced padding since there's no text */
+    margin-bottom: 15px;
+    background-color: var(--color-primary-accent); /* Use muted green/sage */
+    color: var(--color-container-background);
+    font-size: 1.2em;
+    border: none;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+#edit-available-tags-button:hover {
+    background-color: var(--color-primary-accent-hover); /* Darker sage on hover */
+}
+
+#edit-available-tags-button i {
+    margin-right: 0; /* Remove margin since there's no text */
+    font-size: 1.2em; /* Ensure icon is prominent */
+}
+
+#edit-available-tags-button.editing-active {
+    background-color: var(--color-secondary-accent); /* Soft pink when active */
+    color: var(--color-text-primary);
+    box-shadow: 0 0 5px rgba(237, 175, 184, 0.5); /* Subtle glow using soft pink */
+}
+
+#edit-available-tags-button.editing-active:hover {
+    background-color: var(--color-secondary-accent-hover); /* Darker pink on hover when active */
+}
+
+/* Optional: Style for the icon to change appearance */
+#edit-available-tags-button .fa-edit {
+    display: inline-block;
+}
+
+#edit-available-tags-button.editing-active .fa-edit {
+    display: none; /* Hide edit icon when active */
+}
+
+#edit-available-tags-button .fa-save {
+    display: none; /* Hide save icon by default */
+}
+
+#edit-available-tags-button.editing-active .fa-save {
+    display: inline-block; /* Show save icon when active */
+}
