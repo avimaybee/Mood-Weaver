@@ -91,7 +91,8 @@ signupButton.addEventListener('click', async (e) => {
     try {
         await createUserWithEmailAndPassword(auth, email, password);
         console.log('Signed up successfully:');
-        signupForm.reset();
+        signupEmailInput.value = ''; // Clear email
+        signupPasswordInput.value = ''; // Clear password
     } catch (error) {
         console.error('Sign up error:', error);
         let userMessage = 'An unexpected error occurred during sign up.';
@@ -126,7 +127,8 @@ loginButton.addEventListener('click', async (e) => {
     try {
         await signInWithEmailAndPassword(auth, email, password);
         console.log('Logged in successfully:');
-        loginForm.reset();
+        loginEmailInput.value = ''; // Clear email
+        loginPasswordInput.value = ''; // Clear password
     } catch (error) {
         console.error('Login error:', error);
         let userMessage = 'An unexpected error occurred during login.';

@@ -53,10 +53,12 @@ export function displayEntries(entriesToDisplay, activeFilterTags, searchInput, 
         const viewModeDiv = document.createElement('div');
         viewModeDiv.classList.add('entry-view-mode');
 
-        if (entry.aiTitle) {
+        // Display userTitle if available, otherwise display aiTitle
+        const displayedTitle = entry.userTitle || entry.aiTitle;
+        if (displayedTitle) {
             const titleH3 = document.createElement('h3');
-            titleH3.classList.add('entry-ai-title');
-            titleH3.textContent = entry.aiTitle;
+            titleH3.classList.add('entry-title'); // Use a more general class
+            titleH3.textContent = displayedTitle;
             viewModeDiv.appendChild(titleH3);
         }
 
@@ -144,6 +146,9 @@ export function displayEntries(entriesToDisplay, activeFilterTags, searchInput, 
         editTitleInput.classList.add('edit-title-input');
         editTitleInput.placeholder = 'Edit Title (Optional)';
         editModeDiv.appendChild(editTitleInput);
+
+        // Set the initial value of the edit title input
+        editTitleInput.value = entry.userTitle || entry.aiTitle || '';
 
         const editContentTextarea = document.createElement('textarea');
         editContentTextarea.classList.add('edit-content-textarea');
@@ -345,7 +350,7 @@ export function enterEditMode(entryElement, entry, currentUser, getLoadedEntries
     const editTagInput = editModeDiv.querySelector('.edit-tag-input');
     const addEditTagButton = editModeDiv.querySelector('.add-edit-tag-button');
 
-    editTitleInput.value = entry.aiTitle || '';
+    editTitleInput.value = entry.userTitle || entry.aiTitle || '';
 
     // Populate textarea based on entry type
     if (entry.entryType === 'list' && Array.isArray(entry.listItems)) {
@@ -454,7 +459,8 @@ export async function saveEntryChanges(entryId, entryElement, getLoadedEntriesCa
         const originalEntry = loadedEntries.find(entry => entry.id === entryId);
 
         let updateData = {
-            aiTitle: updatedTitle,
+            // Save the title from the edit input as userTitle
+            userTitle: updatedTitle,
             tags: updatedTags,
         };
 
@@ -498,18 +504,22 @@ export async function saveEntryChanges(entryId, entryElement, getLoadedEntriesCa
             // Re-render the specific entry element in view mode
             const viewModeDiv = entryElement.querySelector('.entry-view-mode');
             if (viewModeDiv) {
-                const titleH3 = viewModeDiv.querySelector('.entry-ai-title');
+                const titleH3 = viewModeDiv.querySelector('.entry-title');
                 const contentDiv = viewModeDiv.querySelector('.entry-content');
                 const listContainer = viewModeDiv.querySelector('.entry-list-items');
                 const tagsDiv = viewModeDiv.querySelector('.entry-tags');
 
                  if (titleH3) {
-                     if (updatedTitle) {
-                         titleH3.textContent = updatedTitle;
+                     // Display userTitle if available, otherwise display aiTitle
+                     if (loadedEntries[entryIndex].userTitle) {
+                         titleH3.textContent = loadedEntries[entryIndex].userTitle;
+                         titleH3.style.display = 'block';
+                     } else if (loadedEntries[entryIndex].aiTitle) {
+                         titleH3.textContent = loadedEntries[entryIndex].aiTitle;
                          titleH3.style.display = 'block';
                      } else {
-                         titleH3.style.display = 'none';
-                     }
+                          titleH3.style.display = 'none';
+                      }
                  }
 
                  if (originalEntry && originalEntry.entryType === 'list') {
@@ -552,7 +562,73 @@ export async function saveEntryChanges(entryId, entryElement, getLoadedEntriesCa
                      }
                  }
 
-                if (tagsDiv) tagsDiv.innerHTML = updatedTags.map(tag => `<span class="tag">${tag}</span>`).join('');
+                if (tagsDiv) {
+                    tagsDiv.innerHTML = '';
+                    if (updatedTags && updatedTags.length > 0) {
+                        updatedTags.forEach(tag => {
+                            const tagSpan = document.createElement('span');
+                            tagSpan.classList.add('tag');
+                            tagSpan.textContent = tag;
+                            tagsDiv.appendChild(tagSpan);
+                        });
+                    }
+                }
+
+                // Re-render content or list items based on entry type
+                if (loadedEntries[entryIndex].entryType === 'list') {
+                    // Hide content div, show list container
+                    if (contentDiv) contentDiv.style.display = 'none';
+                    if (listContainer) {
+                         listContainer.style.display = 'block';
+                         listContainer.innerHTML = ''; // Clear existing list items
+                         loadedEntries[entryIndex].listItems.forEach((item, itemIndex) => {
+                              const listItem = document.createElement('li');
+                              listItem.classList.add('list-item');
+                              listItem.innerHTML = `
+                                   <input type="checkbox" ${item.completed ? 'checked' : ''}>
+                                   <span class="list-item-text ${item.completed ? 'completed-task' : ''}">${item.text}</span>
+                              `;
+                              const checkbox = listItem.querySelector('input[type="checkbox"]');
+                              checkbox.addEventListener('change', async (e) => {
+                                   const isCompleted = e.target.checked;
+                                   await handleTaskCheckboxChange(entryId, itemIndex, isCompleted, getLoadedEntriesCallback, displayEntriesCallback, searchInput, activeFilterTags);
+                              });
+                              listContainer.appendChild(listItem);
+                         });
+                    }
+                } else { // Text entry type
+                     // Hide list container, show content div
+                     if (listContainer) listContainer.style.display = 'none';
+                     if (contentDiv) {
+                          contentDiv.style.display = 'block';
+                          contentDiv.textContent = updatedContent;
+                     }
+                }
+
+                // Add image display if imageUrl exists
+                const existingImage = viewModeDiv.querySelector('.entry-image');
+                if (existingImage) { // Remove existing image element before adding the new one
+                    existingImage.remove();
+                }
+
+                if (loadedEntries[entryIndex].imageUrl) {
+                    const entryImage = document.createElement('img');
+                    entryImage.classList.add('entry-image'); // Add a class for styling
+                    entryImage.src = loadedEntries[entryIndex].imageUrl;
+                    entryImage.alt = loadedEntries[entryIndex].aiTitle || 'Journal Entry Image'; // Use AI title as alt text if available
+                    // Insert the image element before the content or list
+                    const contentOrListContainer = contentDiv.style.display !== 'none' ? contentDiv : listContainer;
+                    if (contentOrListContainer && contentOrListContainer.parentNode) {
+                        contentOrListContainer.parentNode.insertBefore(entryImage, contentOrListContainer);
+                    } else { // Fallback if placement is tricky
+                        viewModeDiv.insertBefore(entryImage, titleH3.nextSibling); // Insert after title
+                    }
+                } else if (existingImage) { // If no imageUrl but an image element exists (e.g., removed) remove it
+                     existingImage.remove();
+                }
+
+                 // Hide edit mode, show view mode
+                 cancelEditMode(entryElement);
             }
         }
 
@@ -600,7 +676,7 @@ export async function saveEntryChanges(entryId, entryElement, getLoadedEntriesCa
 }
 
 // --- New function to handle checkbox changes for list items ---
-async function handleTaskCheckboxChange(entryId, itemIndex, isCompleted, getLoadedEntriesCallback) {
+async function handleTaskCheckboxChange(entryId, itemIndex, isCompleted, getLoadedEntriesCallback, displayEntriesCallback, searchInput, activeFilterTags) {
     console.log(`Checkbox changed for entry ID: ${entryId}, item index: ${itemIndex}, completed: ${isCompleted}`);
     const currentUser = getCurrentUser();
     if (!currentUser) {

@@ -1,46 +1,46 @@
-/* style.css - Updated */
+/* style.css - Updated Further */
 :root {
     --font-primary: 'Inter', sans-serif;
 
     /* Light Mode Palette (LM) */
-    --lm-color-background: #F8F9FA;          /* Very light gray, almost white */
-    --lm-color-text-primary: #212529;        /* Dark gray, almost black */
-    --lm-color-text-secondary: #6C757D;      /* Medium gray */
-    --lm-color-container-background: #FFFFFF; /* White */
-    --lm-color-input-background: #FFFFFF;     /* White for inputs */
-    --lm-color-input-focus-glow: rgba(0, 123, 255, 0.25); /* Subtle blue glow for focus */
-    --lm-color-primary-accent: #007BFF;       /* Professional Blue */
-    --lm-color-primary-accent-hover: #0056b3; /* Darker Blue */
-    --lm-color-secondary-accent: #6C757D;     /* Muted Gray for less emphasis (used for secondary buttons like delete) */
-    --lm-color-secondary-accent-hover: #5a6268;/* Darker Muted Gray */
-    --lm-color-tag-bg: #E9ECEF;              /* Light gray for tags */
-    --lm-color-tag-text: #495057;           /* Darker gray for tag text */
+    --lm-color-background: #F8F9FA;
+    --lm-color-text-primary: #212529;
+    --lm-color-text-secondary: #6C757D;
+    --lm-color-container-background: #FFFFFF;
+    --lm-color-input-background: #FFFFFF;
+    --lm-color-input-focus-glow: rgba(0, 123, 255, 0.25);
+    --lm-color-primary-accent: #007BFF;
+    --lm-color-primary-accent-hover: #0056b3;
+    --lm-color-secondary-accent: #6C757D;
+    --lm-color-secondary-accent-hover: #5a6268;
+    --lm-color-tag-bg: #E9ECEF;
+    --lm-color-tag-text: #495057;
     --lm-color-tag-selected-bg: var(--lm-color-primary-accent);
     --lm-color-tag-selected-text: #FFFFFF;
-    --lm-color-border: #DEE2E6;              /* Standard light gray border */
-    --lm-color-shadow: rgba(0, 0, 0, 0.075);   /* Softer shadow */
-    --lm-color-ai-insight-bg: #F8F9FA;       /* Slightly off-white for AI box */
+    --lm-color-border: #DEE2E6;
+    --lm-color-shadow: rgba(0, 0, 0, 0.075);
+    --lm-color-ai-insight-bg: #F8F9FA;
 
     /* Dark Mode Palette (DM) */
-    --dm-color-background: #1A1D21;          /* Deep, cool dark gray */
-    --dm-color-text-primary: #E0E0E0;        /* Light gray for text */
-    --dm-color-text-secondary: #A0A5AD;      /* Softer light gray for secondary text */
-    --dm-color-container-background: #25292E; /* Darker container background */
-    --dm-color-input-background: #2C3137;     /* Slightly lighter than container for inputs */
-    --dm-color-input-focus-glow: rgba(79, 209, 197, 0.25); /* Teal glow */
-    --dm-color-primary-accent: #4FD1C5;       /* Teal accent - good on dark */
-    --dm-color-primary-accent-hover: #38A196; /* Darker Teal */
-    --dm-color-secondary-accent: #718096;     /* Muted cool gray (used for secondary buttons like delete) */
-    --dm-color-secondary-accent-hover: #5A6471;/* Darker muted cool gray */
-    --dm-color-tag-bg: #3A4149;              /* Dark gray for tags */
-    --dm-color-tag-text: #B0B8C4;           /* Light gray for tag text */
+    --dm-color-background: #1A1D21;
+    --dm-color-text-primary: #E0E0E0;
+    --dm-color-text-secondary: #A0A5AD; /* Increased lightness for better icon visibility if needed */
+    --dm-color-container-background: #25292E;
+    --dm-color-input-background: #2C3137;
+    --dm-color-input-focus-glow: rgba(79, 209, 197, 0.25);
+    --dm-color-primary-accent: #4FD1C5;
+    --dm-color-primary-accent-hover: #38A196;
+    --dm-color-secondary-accent: #718096;
+    --dm-color-secondary-accent-hover: #5A6471;
+    --dm-color-tag-bg: #3A4149;
+    --dm-color-tag-text: #B0B8C4;
     --dm-color-tag-selected-bg: var(--dm-color-primary-accent);
-    --dm-color-tag-selected-text: var(--dm-color-background); /* Dark text on light teal */
-    --dm-color-border: #383D44;              /* Subtle dark border */
-    --dm-color-shadow: rgba(0, 0, 0, 0.25);    /* More visible shadow on dark */
-    --dm-color-ai-insight-bg: #2C3137;       /* AI box bg, same as input */
+    --dm-color-tag-selected-text: var(--dm-color-background);
+    --dm-color-border: #383D44;
+    --dm-color-shadow: rgba(0, 0, 0, 0.25);
+    --dm-color-ai-insight-bg: #2C3137;
 
-    /* Universal Variables (initially set to Light Mode) */
+    /* Universal Variables */
     --color-background: var(--lm-color-background);
     --color-text-primary: var(--lm-color-text-primary);
     --color-text-secondary: var(--lm-color-text-secondary);
@@ -93,9 +93,9 @@
 /* --- GENERAL STYLES --- */
 body {
     font-family: var(--font-primary);
-    font-size: 16px; /* Slightly smaller base for better proportions */
+    font-size: 16px;
     margin: 0;
-    padding: 30px 20px;
+    padding: 40px 20px; /* Increased top/bottom padding */
     background-color: var(--color-background);
     color: var(--color-text-primary);
     display: flex;
@@ -108,7 +108,7 @@ body {
 
 #app {
     background-color: var(--color-container-background);
-    padding: 30px 35px; /* Consistent padding */
+    padding: 30px 35px;
     border-radius: var(--border-radius-lg);
     box-shadow: 0 8px 25px var(--color-shadow);
     width: 100%;
@@ -120,7 +120,7 @@ body {
 h1, h2, h3 {
     color: var(--color-text-primary);
     text-align: center;
-    font-weight: 600; /* Slightly less bold for a cleaner look */
+    font-weight: 600;
     line-height: 1.3;
     margin-top: 0;
     transition: color var(--transition-speed) ease;
@@ -161,6 +161,12 @@ textarea {
     font-size: 1rem;
     transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
+/* Adjust tag input height */
+#tag-input-area input[type="text"] {
+    padding-top: 10px;
+    padding-bottom: 10px; /* Makes input height ~36px with 16px font */
+}
+
 
 input[type="email"]:focus,
 input[type="password"]:focus,
@@ -185,14 +191,13 @@ label {
     transition: color var(--transition-speed) ease;
 }
 label i { margin-right: 5px; }
-/* Ensure label icons are visible in dark mode - inherit secondary color which should be light */
 .dark-mode label { color: var(--dm-color-text-secondary); }
 
 
 /* --- BUTTONS --- */
 button {
     background-color: var(--color-primary-accent);
-    color: var(--lm-color-container-background); /* Usually white or very light for primary buttons */
+    color: var(--lm-color-container-background);
     padding: 12px 20px;
     border: none;
     border-radius: var(--border-radius-md);
@@ -202,13 +207,13 @@ button {
     width: 100%;
     margin-bottom: 15px;
     transition: background-color var(--transition-speed) ease-in-out, box-shadow var(--transition-speed) ease-in-out, color var(--transition-speed) ease;
-    display: inline-flex; /* For icon alignment */
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    line-height: 1; /* Prevents icon alignment issues with text */
+    line-height: 1;
 }
 .dark-mode button {
-    color: var(--dm-color-background); /* Dark text on lighter teal accent */
+    color: var(--dm-color-background);
 }
 
 
@@ -225,20 +230,22 @@ button:active {
 /* Specific Button Styles */
 #logout-button, .delete-entry-button {
     background-color: var(--color-secondary-accent);
-    color: var(--lm-color-container-background); /* White on gray for light mode */
+    color: var(--lm-color-container-background);
 }
 .dark-mode #logout-button, .dark-mode .delete-entry-button {
-     color: var(--dm-color-text-primary); /* Light text on gray for dark mode */
+     color: var(--dm-color-text-primary);
 }
 #logout-button:hover, .delete-entry-button:hover {
     background-color: var(--color-secondary-accent-hover);
 }
 #logout-button {
     width: auto;
-    padding: 8px 15px;
+    /* Adjust padding to make height ~36px to match icon-button */
+    /* Assuming 0.9em font-size ~14.4px. (36 - 14.4)/2 = 10.8. Use 11px. */
+    padding: 11px 15px;
     font-size: 0.9em;
     margin: 0;
-    line-height: normal; /* Allow normal line height for text button */
+    line-height: normal;
 }
 
 #cancel-edit-button, .cancel-edit-button {
@@ -247,55 +254,54 @@ button:active {
     border: 1px solid var(--color-border);
 }
 #cancel-edit-button:hover, .cancel-edit-button:hover {
-    background-color: var(--color-tag-bg); /* Use tag bg for subtle hover */
+    background-color: var(--color-tag-bg);
     color: var(--color-text-primary);
-    border-color: var(--color-border); /* Keep border or make slightly darker */
+    border-color: var(--color-border);
 }
 
-.icon-button { /* For small icon-only buttons */
+.icon-button {
     background-color: transparent;
-    color: var(--color-text-secondary); /* Default muted color */
-    border: none; /* Removed border */
+    color: var(--color-text-secondary);
+    border: none;
     border-radius: 50%;
-    width: 36px; /* Fixed size */
-    height: 36px; /* Fixed size */
+    width: 36px;
+    height: 36px;
     padding: 0;
     margin: 0;
-    font-size: 1.1em;
+    font-size: 1.1em; /* Icon size */
     display: inline-flex;
     align-items: center;
     justify-content: center;
     transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
 }
-/* Ensure icon buttons have better visibility in dark mode */
 .dark-mode .icon-button {
-    color: var(--dm-color-text-secondary); /* Start with muted */
+    color: var(--dm-color-text-secondary);
 }
 
 .icon-button:hover {
     background-color: var(--color-tag-bg);
-    color: var(--color-text-primary); /* More visible on hover */
+    color: var(--color-text-primary);
     box-shadow: none;
 }
 .dark-mode .icon-button:hover {
-    background-color: var(--dm-color-border); /* Darker background on hover */
+    background-color: var(--dm-color-border);
     color: var(--dm-color-text-primary);
 }
 
 .icon-button i { margin-right: 0; }
 
 
-#add-tag-button { /* Checkmark button for adding tag */
+#add-tag-button {
     width: auto;
-    padding: 10px 12px;
+    padding: 10px 12px; /* Height ~36px with 16px font */
     font-size: 1rem;
     margin-left: 8px;
-    margin-bottom: 0; /* Align with input */
+    margin-bottom: 0;
     background-color: var(--color-primary-accent);
-    line-height: normal; /* Normal line height */
+    line-height: normal;
 }
 .dark-mode #add-tag-button {
-    color: var(--dm-color-background); /* Dark text on light teal accent */
+    color: var(--dm-color-background);
 }
 
 #add-tag-button:hover {
@@ -315,8 +321,17 @@ button:active {
     transition: border-color var(--transition-speed) ease;
 }
 #user-info p { margin: 0; font-size: 0.95em; flex-grow: 1; }
-.user-pfp-icon { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; margin-right: 10px;}
-.user-info-right { display: flex; align-items: center; gap: 10px; } /* Already flex, handles alignment */
+.user-pfp-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    margin-right: 10px;
+    border: 1px solid var(--color-border); /* Fallback border */
+    background-color: var(--color-tag-bg); /* Fallback background */
+}
+.user-info-right { display: flex; align-items: center; gap: 10px; }
 
 #auth-container p a, #journal-container p a {
     color: var(--color-link);
@@ -335,15 +350,14 @@ button:active {
 /* --- JOURNAL FORM & TAGS --- */
 .entry-input-container { position: relative; margin-bottom: 15px; }
 .entry-input-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-/* Active state for List mode toggle */
 #list-mode-toggle.active {
     background-color: var(--color-primary-accent);
-    color: var(--lm-color-container-background); /* White text in light mode */
+    color: var(--lm-color-container-background);
     border-color: var(--color-primary-accent);
 }
 .dark-mode #list-mode-toggle.active {
-    background-color: var(--dm-color-primary-accent); /* Teal background */
-    color: var(--dm-color-background); /* Dark text on teal */
+    background-color: var(--dm-color-primary-accent);
+    color: var(--dm-color-background);
 }
 
 #tag-input-area { margin-bottom: 20px; }
@@ -354,29 +368,29 @@ button:active {
     margin-top: 10px;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px; /* Gap between tags */
+    gap: 8px;
 }
 
 .tag {
-    display: inline-flex; /* For remove icon alignment */
+    display: inline-flex;
     align-items: center;
     background-color: var(--color-tag-bg);
     color: var(--color-tag-text);
     padding: 6px 12px;
-    border-radius: var(--border-radius-md); /* Softer radius */
+    border-radius: var(--border-radius-md);
     font-size: 0.85em;
     font-weight: 500;
     transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
-    cursor: default; /* Default unless interactive */
+    cursor: default;
 }
 .available-tags .tag, #filter-tags-list .tag { cursor: pointer; }
 .available-tags .tag:hover, #filter-tags-list .tag:hover:not(.selected) {
-    background-color: var(--color-secondary-accent); /* Use secondary accent for hover */
-    color: var(--lm-color-container-background); /* White text in light mode */
+    background-color: var(--color-secondary-accent);
+    color: var(--lm-color-container-background);
 }
 .dark-mode .available-tags .tag:hover, .dark-mode #filter-tags-list .tag:hover:not(.selected) {
-    background-color: var(--dm-color-secondary-accent); /* Darker muted cool gray */
-    color: var(--dm-color-text-primary); /* Light text */
+    background-color: var(--dm-color-secondary-accent);
+    color: var(--dm-color-text-primary);
 }
 
 #filter-tags-list .tag.selected {
@@ -396,17 +410,15 @@ button:active {
 .tag .remove-tag:hover { opacity: 1; }
 
 #edit-available-tags-button {
-    /* Uses .icon-button styles */
-    margin-right: 5px; /* Space before input */
+    margin-right: 5px;
 }
-/* Active state for Edit available tags button */
 #edit-available-tags-button.editing-active {
     background-color: var(--color-primary-accent);
-    color: var(--lm-color-container-background); /* White text */
+    color: var(--lm-color-container-background);
 }
 .dark-mode #edit-available-tags-button.editing-active {
-    background-color: var(--dm-color-primary-accent); /* Teal background */
-    color: var(--dm-color-background); /* Dark text on teal */
+    background-color: var(--dm-color-primary-accent);
+    color: var(--dm-color-background);
 }
 
 
@@ -418,7 +430,7 @@ button:active {
 .entry {
     background-color: var(--color-container-background);
     border: 1px solid var(--color-border);
-    padding: 20px 25px; /* More horizontal padding */
+    padding: 20px 25px;
     margin-bottom: 20px;
     border-radius: var(--border-radius-md);
     box-shadow: 0 4px 10px var(--color-shadow);
@@ -434,10 +446,10 @@ button:active {
     word-wrap: break-word;
     margin-bottom: 15px;
     color: var(--color-text-secondary);
-    line-height: 1.7; /* Increased line height for readability */
+    line-height: 1.7;
     transition: color var(--transition-speed) ease;
 }
-.entry h3 { /* Title of the entry */
+.entry h3 {
     text-align: left;
     margin-bottom: 10px;
     font-size: 1.4em;
@@ -467,8 +479,6 @@ button:active {
 .entry-controls { display: flex; gap: 10px; margin:0; }
 .entry-controls button { margin-bottom: 0; padding: 8px 12px; font-size: 0.9em; width: auto; line-height: normal;}
 
-.edit-entry-button { /* No specific styling, inherits from button */ }
-/* .delete-entry-button styled with #logout-button */
 
 /* --- AI INSIGHTS --- */
 .ai-insights {
@@ -487,7 +497,7 @@ button:active {
 .ai-insights p { margin: 8px 0; line-height: 1.6; color: var(--color-text-secondary); transition: color var(--transition-speed) ease;}
 .ai-insights p strong { color: var(--color-text-primary); font-weight: 600; }
 .ai-greeting { font-style: italic; }
-.ai-reflective-prompt strong { color: var(--color-primary-accent); } /* Make prompt stand out */
+.ai-reflective-prompt strong { color: var(--color-primary-accent); }
 .ai-timestamp { font-size: 0.75em; opacity: 0.8; margin-top: 15px; }
 
 .ai-insights-container {
@@ -498,13 +508,13 @@ button:active {
     margin-top: 0;
 }
 .entry.expanded .ai-insights-container {
-    max-height: 600px; /* Increased max height */
+    max-height: 600px;
     opacity: 1;
     margin-top: 20px;
 }
 .ai-toggle-button {
     cursor: pointer;
-    color: var(--color-text-secondary); /* Default muted color */
+    color: var(--color-text-secondary);
     font-size: 0.9em;
     display: flex;
     align-items: center;
@@ -512,30 +522,29 @@ button:active {
     background: none; border: none; padding: 5px; width: auto; margin:0;
 }
 .dark-mode .ai-toggle-button {
-    color: var(--dm-color-text-secondary); /* Muted color in dark mode */
+    color: var(--dm-color-text-secondary);
 }
 
-.ai-toggle-button:hover { color: var(--color-primary-accent); } /* Accent on hover */
+.ai-toggle-button:hover { color: var(--color-primary-accent); }
 
 .ai-toggle-button i { margin-right: 6px; font-size: 1em; }
-.ai-icon-sparkles { margin-left: 5px; color: var(--color-primary-accent); } /* Keep this subtle accent */
+.ai-icon-sparkles { margin-left: 5px; color: var(--color-primary-accent); }
 
 
 /* --- SEARCH & FILTER --- */
 #search-filter-area {
     margin-bottom: 25px;
     padding: 20px;
-    background-color: var(--color-container-background); /* Match app bg or slightly different */
+    background-color: var(--color-container-background);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-md);
     transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 .dark-mode #search-filter-area {
-    background-color: var(--dm-color-container-background); /* Or --dm-color-input-background for slight differentiation */
+    background-color: var(--dm-color-container-background);
 }
 #search-filter-area label { font-size: 1em; margin-bottom: 10px; }
-/* Ensure search label icon is visible */
-.dark-mode #search-filter-area label { color: var(--dm-color-text-primary); } /* Use primary text color for this important label */
+.dark-mode #search-filter-area label { color: var(--dm-color-text-primary); }
 
 
 #search-filter-area #search-input { margin-bottom: 15px; }
@@ -543,12 +552,10 @@ button:active {
 
 /* --- DARK MODE TOGGLE --- */
 #dark-mode-toggle {
-    /* Uses .icon-button styles */
-    border: none; /* Explicitly remove border */
-    /* Color handled by .icon-button default and hover */
-    visibility: visible !important; /* Override inline style */
+    border: none;
+    visibility: visible !important;
 }
-/* Hover styles are inherited from .icon-button */
+
 
 /* --- LIST ITEMS (TODO style) --- */
 .entry-list-items { list-style: none; padding: 0; margin: 0 0 15px 0; }
@@ -557,9 +564,33 @@ button:active {
 .list-item-text { flex-grow: 1; word-wrap: break-word; transition: color var(--transition-speed) ease, text-decoration-color var(--transition-speed) ease;}
 .list-item-text.completed-task {
     text-decoration: line-through;
-    text-decoration-color: var(--color-text-secondary); /* Ensure line-through is visible */
-    color: var(--color-text-secondary); /* Keep text readable but faded */
+    text-decoration-color: var(--color-text-secondary);
+    color: var(--color-text-secondary);
     opacity: 0.7;
+}
+
+
+/* --- ENTRY IMAGES --- */
+.entry-image {
+    max-width: 100%; /* Ensure image is not wider than its container */
+    height: auto; /* Maintain aspect ratio */
+    display: block; /* Make it a block element */
+    margin: 0 auto 15px auto; /* Center the image and add space below */
+    border-radius: var(--border-radius-md); /* Match container border-radius */
+    box-shadow: 0 2px 8px var(--color-shadow); /* Add a subtle shadow */
+    transition: opacity var(--transition-speed) ease;
+}
+
+/* Ensure images inside .entry are styled correctly */
+.entry .entry-image {
+    margin-top: 15px; /* Add space above if it's the first element */
+    margin-bottom: 15px; /* Ensure space below */
+}
+
+/* Adjust spacing if image is between title and content/list */
+.entry .entry-image + .entry-content,
+.entry .entry-image + .entry-list-items {
+     margin-top: 15px; /* Add space above the content/list if preceded by an image */
 }
 
 
@@ -568,9 +599,9 @@ button:active {
     border-left: 3px solid var(--color-primary-accent);
     padding-left: 12px;
 }
-.entry-edit-mode { /* Container when editing an existing entry inline */
+.entry-edit-mode {
     padding: 20px;
-    background-color: var(--color-input-background); /* Use input bg for distinct area */
+    background-color: var(--color-input-background);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-md);
     margin-top: 15px;
@@ -579,19 +610,29 @@ button:active {
 
 /* --- RESPONSIVE --- */
 @media (max-width: 600px) {
-    body { padding: 15px 10px; }
+    body { padding: 20px 10px; } /* Adjusted body padding */
     #app { padding: 20px; border-radius: var(--border-radius-md); }
     h1 { font-size: 1.8em; }
     h2 { font-size: 1.4em; }
     h3 { font-size: 1.15em; }
     input[type="email"], input[type="password"], input[type="text"], textarea { padding: 10px 12px; font-size: 0.95rem; }
+    #tag-input-area input[type="text"] {
+        padding-top: 8px; /* Adjust for smaller font */
+        padding-bottom: 8px;
+    }
     button { padding: 10px 15px; font-size: 0.95rem; }
-    #logout-button { padding: 6px 10px; font-size: 0.85em; }
+    #logout-button {
+        padding: 9px 12px; /* Adjusted padding for smaller font size */
+        font-size: 0.85em;
+    }
     .entry { padding: 15px; }
     .entry-controls button { padding: 6px 10px; font-size: 0.85em; width: auto; }
     #user-info { flex-direction: column; align-items: flex-start; }
     .user-info-right { margin-top: 10px; width: 100%; justify-content: flex-end; }
     #search-filter-area { padding: 15px; }
-    /* Adjust icon button size slightly for smaller screens if needed, or keep consistent */
     .icon-button { width: 32px; height: 32px; font-size: 1em; }
+    #add-tag-button {
+        padding: 8px 10px; /* Adjust for smaller font */
+        font-size: 0.95rem;
+    }
 }

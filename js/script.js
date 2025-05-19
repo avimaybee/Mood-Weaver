@@ -1,9 +1,10 @@
 import { initializeAuth, getCurrentUser } from './auth.js';
 import { serverTimestamp, collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, getDoc, doc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
-import { db } from './firebase-config.js';
+import { db, storage } from './firebase-config.js';
 import { displayEntries, formatUserFriendlyTimestamp, enterEditMode, saveEntryChanges, cancelEditMode } from './journalEntryDisplay.js';
 import { selectedTags, activeFilterTags, defaultTags, renderSelectedTags, renderAvailableTags, renderFilterTags, toggleFilterTag, addTag, removeTag, initializeTaggingFilteringSearching } from './taggingFilteringSearching.js';
 import { handleDeleteEntry } from './firebaseUtils.js';
+import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js";
 
 // --- Variables --- 
 let entriesListener = null;
@@ -12,7 +13,7 @@ let isListMode = false; // Variable to track list mode
 
 document.addEventListener('DOMContentLoaded', () => {
     const journalForm = document.getElementById('journal-form');
-    const journalEntryInput = document.getElementById('journal-entry');
+    const journalEntryInput = document.getElementById('entry-content');
     const entrySuccessMessage = document.getElementById('entry-success');
     const entriesList = document.getElementById('entries-list');
     const saveEntryButton = document.getElementById('save-entry-button');
@@ -125,12 +126,14 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const entryContent = journalEntryInput.value.trim();
         const currentUser = getCurrentUser();
+        const entryImageInput = document.getElementById('entry-image'); // Get image input element
+        const imageFile = entryImageInput.files[0]; // Get the selected file
 
         entrySuccessMessage.textContent = '';
         saveEntryButton.disabled = true;
 
-        if (!entryContent) {
-            alert('Please write something in your journal entry.');
+        if (!entryContent && !imageFile) { // Check if both content and image are empty
+            alert('Please write something or add an image to your journal entry.');
             saveEntryButton.disabled = false;
             return;
         }
@@ -148,33 +151,50 @@ document.addEventListener('DOMContentLoaded', () => {
             timestamp: serverTimestamp(),
             tags: [...selectedTags],
             entryType: isListMode ? 'list' : 'text'
+            // imageUrl will be added if an image is uploaded
         };
 
         let lines = []; 
 
         if (isListMode) {
-            lines = entryContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-            newEntryData.listItems = lines.map(line => ({ text: line, completed: false }));
-            newEntryData.content = ''; 
+            if (entryContent) { // Only split if there's content
+                lines = entryContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+                newEntryData.listItems = lines.map(line => ({ text: line, completed: false }));
+            } else {
+                newEntryData.listItems = [];
+            }
+            newEntryData.content = ''; // Clear content for list type
         } else {
             newEntryData.content = entryContent;
-            newEntryData.listItems = []; 
+            newEntryData.listItems = []; // Clear listItems for text type
         }
 
         let newEntryRef;
+        let imageUrl = null;
+
         try {
+            // 1. Upload image if exists
+            if (imageFile) {
+                entrySuccessMessage.textContent = 'Uploading image...';
+                const storageRef = ref(storage, `users/${currentUser.uid}/images/${Date.now()}_${imageFile.name}`);
+                const uploadTask = await uploadBytes(storageRef, imageFile);
+                imageUrl = await getDownloadURL(uploadTask.ref);
+                console.log('Image uploaded successfully, URL:', imageUrl);
+                newEntryData.imageUrl = imageUrl; // Add image URL to entry data
+                entrySuccessMessage.textContent = 'Image uploaded. Saving entry...';
+            }
+
+            // 2. Add entry data to Firestore
             const docRef = await addDoc(collection(db, 'users', currentUser.uid, 'entries'), newEntryData);
             newEntryRef = docRef;
             console.log('Journal entry initially saved with ID:', docRef.id);
-            journalEntryInput.value = '';
-            selectedTags.length = 0;
-            renderSelectedTags();
 
+            // 3. Prepare content for AI analysis (only text/list content, not image)
             const contentForAI = isListMode 
-                ? lines.map(item => item).join('\n') // Join list item text for AI (was item.text)
-                : entryContent;
+                ? newEntryData.listItems.map(item => item.text).join('\n') // Use processed list items
+                : newEntryData.content;
 
-            if (contentForAI) {
+            if (contentForAI) { // Only analyze if there's text/list content
                 entrySuccessMessage.textContent = isListMode ? 'List saved! Analyzing with AI...' : 'Entry saved! Analyzing with AI...';
                 const aiResponse = await fetch('https://mood-weaver-ai-backend.onrender.com/analyze-entry', {
                     method: 'POST',
@@ -190,15 +210,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const errorMessage = errData ? (errData.error || JSON.stringify(errData)) : `Server error: ${aiResponse.status}`;
                     console.error('AI analysis error from backend:', errorMessage);
                     entrySuccessMessage.textContent = 'Entry saved. AI analysis failed.';
-                    if (newEntryRef) {
-                        await updateDoc(newEntryRef, {
-                            aiError: errorMessage,
-                            aiTimestamp: serverTimestamp()
-                        });
-                    }
+                    // No need to update doc here, the initial save already happened.
+                    // We might want to update with an error field if AI analysis fails,
+                    // but that's already handled below.
                 } else {
                     const aiData = await aiResponse.json();
                     console.log('AI Analysis successful. Data from backend:', aiData);
+                    // Update the entry with AI analysis results
                     if (newEntryRef) {
                         await updateDoc(newEntryRef, {
                             aiTitle: aiData.aiTitle || "AI Title Placeholder",
@@ -212,23 +230,50 @@ document.addEventListener('DOMContentLoaded', () => {
                         entrySuccessMessage.textContent = isListMode ? 'List saved and AI analysis complete!' : 'Entry saved and AI analysis complete!';
                     }
                 }
-            } else {
-                entrySuccessMessage.textContent = isListMode ? 'Empty list saved.' : 'Empty entry saved.';
+            } else if (imageFile && !entryContent && !isListMode) { // Handle case with only image, no text/list
+                 entrySuccessMessage.textContent = 'Image entry saved.';
+            } else if (imageFile && (entryContent || isListMode)) { // Handle case with image and text/list
+                 entrySuccessMessage.textContent = isListMode ? 'List and Image saved!' : 'Entry and Image saved!';
             }
+            else { // Handle case with no content and no image (should be caught by initial check)
+                 entrySuccessMessage.textContent = 'Empty entry processed.';
+            }
+
         } catch (error) {
-            console.error('Error during new entry processing or AI analysis:', error);
+            console.error('Error during new entry processing, image upload, or AI analysis:', error);
+            let errorMsg = 'Failed to process entry fully.';
+            if (error.message.includes('storage')) {
+                 errorMsg = 'Error uploading image.';
+            } else if (error.message.includes('firestore')) {
+                 errorMsg = 'Error saving entry data.';
+            } else if (error.message.includes('AI analysis')) {
+                 errorMsg = 'Entry saved. AI analysis failed.';
+            }
+
             if (!entrySuccessMessage.textContent.includes('failed') && !entrySuccessMessage.textContent.includes('issue')) {
-                entrySuccessMessage.textContent = 'Failed to process new entry fully.';
+                entrySuccessMessage.textContent = errorMsg;
             }
-            if (newEntryRef && !error.toString().includes('AI analysis')) {
-                updateDoc(newEntryRef, { 
-                    aiError: `Frontend error on new entry: ${error.message}`,
-                    aiTimestamp: serverTimestamp()
-                }).catch(updateError => console.error("Failed to update new entry with error state:", updateError));
+
+            // Attempt to update the doc with an error if the docRef exists and the error wasn't just AI analysis failure
+            if (newEntryRef && !error.toString().includes('AI analysis') && !error.message.includes('storage') && !error.message.includes('firestore')) { // Log frontend error not related to upload/save
+                 updateDoc(newEntryRef, { 
+                     aiError: `Frontend error on new entry processing: ${error.message}`,
+                     aiTimestamp: serverTimestamp()
+                 }).catch(updateError => console.error("Failed to update new entry with frontend error state:", updateError));
+            } else if (newEntryRef && error.message.includes('storage')) {
+                 updateDoc(newEntryRef, { 
+                     aiError: `Image upload failed: ${error.message}`,
+                     aiTimestamp: serverTimestamp()
+                 }).catch(updateError => console.error("Failed to update new entry with storage error state:", updateError));
+            } else if (newEntryRef && error.message.includes('firestore')) {
+                 // Firestore save failed, docRef might not exist or update will fail too.
+                 // Log error and rely on initial console.error
             }
+
         } finally {
             saveEntryButton.disabled = false;
-            journalEntryInput.value = '';
+            journalEntryInput.value = ''; // Clear text/textarea input
+            entryImageInput.value = ''; // Clear file input
             isListMode = false;
             if (listModeToggle) {
                  listModeToggle.classList.remove('active');
