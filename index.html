@@ -37,50 +37,54 @@
             <div id="user-info">
                 <img id="user-pfp" src="" alt="User Profile Picture" class="user-pfp-icon">
                 <p>Logged in as: <span id="user-email-display"></span></p>
-                <!-- Wrapper for Dark mode toggle and Logout button -->
                 <div class="user-info-right">
-                    <!-- Dark mode toggle button -->
-                    <button id="dark-mode-toggle" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
+                    <button id="dark-mode-toggle" class="icon-button" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
                     <button id="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
                 </div>
             </div>
             <h2>My Journal</h2>
             <form id="journal-form">
+                <!-- Title Input -->
                 <div class="entry-input-container">
-                    <div class="entry-input-controls">
-                        <label for="entry-title">Title</label>
-                        <button id="list-mode-toggle" class="icon-button" title="Toggle List Mode"><i class="fas fa-list"></i></button>
-                    </div>
-                    <input type="text" id="entry-title" placeholder="Entry title">
-                </div>
-                <div class="entry-input-container">
-                    <label for="entry-content">Content</label>
-                    <textarea id="entry-content" placeholder="Write your thoughts..."></textarea>
+                    <label for="entry-title-input">Title</label>
+                    <input type="text" id="entry-title-input" placeholder="Entry title">
                 </div>
 
-                <!-- Image Upload Input -->
+                <!-- Content Area -->
                 <div class="entry-input-container">
-                    <label for="entry-image">Add Image</label>
-                    <input type="file" id="entry-image" accept="image/*">
+                    <div class="content-controls-header">
+                        <label for="journal-entry">Content</label>
+                        <div class="content-action-buttons">
+                            <label for="image-upload" class="custom-file-upload" title="Add Image">
+                                <i class="fas fa-image"></i> Image
+                            </label>
+                            <input type="file" id="image-upload" accept="image/*"> <!-- Hidden by CSS -->
+
+                            <button type="button" id="list-mode-toggle-button" title="Toggle List Mode">
+                                <i class="fas fa-list-ul"></i> List Mode
+                            </button>
+                        </div>
+                    </div>
+                    <textarea id="journal-entry" placeholder="Pour your heart out here..."></textarea>
                 </div>
 
                 <!-- Tag input area -->
                 <div id="tag-input-area">
                     <label for="tag-input"><i class="fas fa-tags"></i> Tags:</label>
                     <div class="tag-input-container">
+                        <input type="text" id="tag-input" placeholder="Add tags (e.g., project, ideas)">
                         <button type="button" id="edit-available-tags-button" title="Edit Available Tags" class="icon-button">
                             <i class="fas fa-edit"></i>
                             <span class="visually-hidden">Edit Available Tags</span>
                         </button>
-                        <input type="text" id="tag-input" placeholder="Add tags (e.g., project, ideas)">
                         <button type="button" id="add-tag-button" title="Add Tag">
                             <i class="fas fa-check"></i>
                             <span class="visually-hidden">Add Tag</span>
                         </button>
                     </div>
-                    <div id="suggested-tags"></div> <!-- For AI suggestions later -->
+                    <div id="suggested-tags"></div>
                     <div id="selected-tags"></div>
-                    <div id="available-tags" class="available-tags"></div> <!-- Container for default and existing tags -->
+                    <div id="available-tags" class="available-tags"></div>
                 </div>
 
                 <div class="form-button-group">
@@ -94,9 +98,9 @@
             <div id="search-filter-area">
                 <label for="search-input"><i class="fas fa-search"></i> Search & Filter:</label>
                 <input type="text" id="search-input" placeholder="Search entries or filter by tags...">
-                <div id="filter-tags-list"></div> <!-- Keep the filter tags list here -->
+                <div id="filter-tags-list"></div>
             </div>
-            <h3><i class="fas fa-clipboard"></i> Your Entries:</h3>
+            <h3><i class="fas fa-clipboard"></i> My Entries:</h3>
             
             <div id="entries-list">
                 <!-- Entries will be dynamically loaded here -->
@@ -104,10 +108,10 @@
         </div>
     </div>
 
-    <!-- Firebase Config (already imports Firebase SDKs) -->
+    <!-- Firebase Config -->
     <script src="js/firebase-config.js" type="module"></script>
 
-    <!-- Add a small CSS rule for accessibility -->
+    <!-- Visually Hidden CSS -->
     <style>
         .visually-hidden {
             position: absolute;

@@ -13,12 +13,13 @@ let isListMode = false; // Variable to track list mode
 
 document.addEventListener('DOMContentLoaded', () => {
     const journalForm = document.getElementById('journal-form');
-    const journalEntryInput = document.getElementById('entry-content');
+    const journalEntryInput = document.getElementById('journal-entry');
     const entrySuccessMessage = document.getElementById('entry-success');
     const entriesList = document.getElementById('entries-list');
     const saveEntryButton = document.getElementById('save-entry-button');
     const searchInput = document.getElementById('search-input');
-    const listModeToggle = document.getElementById('list-mode-toggle');
+    const listModeToggle = document.getElementById('list-mode-toggle-button');
+    const entryTitleInput = document.getElementById('entry-title-input');
 
     const placeholderPhrases = [
         "Start typing your thoughts here...",
@@ -124,9 +125,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Journal Logic --- 
     journalForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const entryTitleInput = document.getElementById('entry-title-input'); // Get title input element
         const entryContent = journalEntryInput.value.trim();
         const currentUser = getCurrentUser();
-        const entryImageInput = document.getElementById('entry-image'); // Get image input element
+        const entryImageInput = document.getElementById('image-upload'); // Get image input element
         const imageFile = entryImageInput.files[0]; // Get the selected file
 
         entrySuccessMessage.textContent = '';
@@ -153,6 +155,12 @@ document.addEventListener('DOMContentLoaded', () => {
             entryType: isListMode ? 'list' : 'text'
             // imageUrl will be added if an image is uploaded
         };
+
+        // Add user-provided title if available
+        const entryTitle = entryTitleInput.value.trim();
+        if (entryTitle) {
+             newEntryData.userTitle = entryTitle;
+        }
 
         let lines = []; 
 
@@ -274,6 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
             saveEntryButton.disabled = false;
             journalEntryInput.value = ''; // Clear text/textarea input
             entryImageInput.value = ''; // Clear file input
+            entryTitleInput.value = ''; // Clear title input
             isListMode = false;
             if (listModeToggle) {
                  listModeToggle.classList.remove('active');

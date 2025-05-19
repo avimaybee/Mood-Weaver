@@ -193,7 +193,7 @@ export function displayEntries(entriesToDisplay, activeFilterTags, searchInput, 
 
         const deleteButton = document.createElement('button');
         deleteButton.classList.add('delete-entry-button');
-        deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
+        deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
         deleteButton.dataset.id = entry.id;
         deleteButton.addEventListener('click', () => handleDeleteEntryCallback(entry.id));
 
@@ -491,7 +491,7 @@ export async function saveEntryChanges(entryId, entryElement, getLoadedEntriesCa
         const entryIndex = loadedEntries.findIndex(entry => entry.id === entryId);
 
         if (entryIndex !== -1) {
-            loadedEntries[entryIndex].aiTitle = updatedTitle;
+            loadedEntries[entryIndex].userTitle = updatedTitle;
             loadedEntries[entryIndex].tags = updatedTags;
             if (originalEntry && originalEntry.entryType === 'list') {
                  loadedEntries[entryIndex].listItems = updateData.listItems;

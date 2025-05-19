@@ -1,4 +1,4 @@
-/* style.css - Updated Further */
+/* style.css - Further UI Refinements & Alignments - Delete Button Shape Fixed */
 :root {
     --font-primary: 'Inter', sans-serif;
 
@@ -15,16 +15,20 @@
     --lm-color-secondary-accent-hover: #5a6268;
     --lm-color-tag-bg: #E9ECEF;
     --lm-color-tag-text: #495057;
-    --lm-color-tag-selected-bg: var(--lm-color-primary-accent);
-    --lm-color-tag-selected-text: #FFFFFF;
+    --lm-color-tag-selected-bg: var(--lm-color-primary-accent);      /* For selected tags in filter lists */
+    --lm-color-tag-selected-text: #FFFFFF;                          /* For selected tags in filter lists */
     --lm-color-border: #DEE2E6;
     --lm-color-shadow: rgba(0, 0, 0, 0.075);
     --lm-color-ai-insight-bg: #F8F9FA;
+    --lm-color-delete-button-bg: #DC3545;         /* Red for delete */
+    --lm-color-delete-button-bg-hover: #C82333;   /* Darker red for delete hover */
+    --lm-color-delete-button-text: #FFFFFF;
+
 
     /* Dark Mode Palette (DM) */
     --dm-color-background: #1A1D21;
     --dm-color-text-primary: #E0E0E0;
-    --dm-color-text-secondary: #A0A5AD; /* Increased lightness for better icon visibility if needed */
+    --dm-color-text-secondary: #A0A5AD;
     --dm-color-container-background: #25292E;
     --dm-color-input-background: #2C3137;
     --dm-color-input-focus-glow: rgba(79, 209, 197, 0.25);
@@ -34,11 +38,15 @@
     --dm-color-secondary-accent-hover: #5A6471;
     --dm-color-tag-bg: #3A4149;
     --dm-color-tag-text: #B0B8C4;
-    --dm-color-tag-selected-bg: var(--dm-color-primary-accent);
-    --dm-color-tag-selected-text: var(--dm-color-background);
+    --dm-color-tag-selected-bg: var(--dm-color-primary-accent);      /* For selected tags in filter lists */
+    --dm-color-tag-selected-text: var(--dm-color-background);        /* For selected tags in filter lists */
     --dm-color-border: #383D44;
     --dm-color-shadow: rgba(0, 0, 0, 0.25);
     --dm-color-ai-insight-bg: #2C3137;
+    --dm-color-delete-button-bg: #E57373;         /* Lighter, softer red for dark mode delete */
+    --dm-color-delete-button-bg-hover: #EF5350;   /* Slightly brighter red for dark mode delete hover */
+    --dm-color-delete-button-text: var(--dm-color-background); /* Dark text on red */
+
 
     /* Universal Variables */
     --color-background: var(--lm-color-background);
@@ -56,8 +64,12 @@
     --color-tag-selected-bg: var(--lm-color-tag-selected-bg);
     --color-tag-selected-text: var(--lm-color-tag-selected-text);
     --color-border: var(--lm-color-border);
-    --color-shadow: var(--lm-color-shadow);
+    --color-shadow: var(--color-shadow);
     --color-ai-insight-bg: var(--lm-color-ai-insight-bg);
+    --color-delete-button-bg: var(--lm-color-delete-button-bg);
+    --color-delete-button-bg-hover: var(--lm-color-delete-button-bg-hover);
+    --color-delete-button-text: var(--lm-color-delete-button-text);
+
 
     --color-error: #d9534f;
     --color-success: #5cb85c;
@@ -88,6 +100,9 @@
     --color-border: var(--dm-color-border);
     --color-shadow: var(--dm-color-shadow);
     --color-ai-insight-bg: var(--dm-color-ai-insight-bg);
+    --color-delete-button-bg: var(--dm-color-delete-button-bg);
+    --color-delete-button-bg-hover: var(--dm-color-delete-button-bg-hover);
+    --color-delete-button-text: var(--dm-color-delete-button-text);
 }
 
 /* --- GENERAL STYLES --- */
@@ -95,7 +110,7 @@ body {
     font-family: var(--font-primary);
     font-size: 16px;
     margin: 0;
-    padding: 40px 20px; /* Increased top/bottom padding */
+    padding: 40px 20px;
     background-color: var(--color-background);
     color: var(--color-text-primary);
     display: flex;
@@ -145,6 +160,11 @@ hr {
 }
 
 /* --- FORMS & INPUTS --- */
+/* For the new Title input field */
+#entry-title-input {
+    margin-bottom: 15px;
+}
+
 input[type="email"],
 input[type="password"],
 input[type="text"],
@@ -161,10 +181,9 @@ textarea {
     font-size: 1rem;
     transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
-/* Adjust tag input height */
-#tag-input-area input[type="text"] {
+#tag-input-area input[type="text"]#tag-input {
     padding-top: 10px;
-    padding-bottom: 10px; /* Makes input height ~36px with 16px font */
+    padding-bottom: 10px;
 }
 
 
@@ -177,9 +196,10 @@ textarea:focus {
     box-shadow: 0 0 0 3px var(--color-input-focus-glow);
 }
 
-textarea {
-    min-height: 100px;
+textarea#journal-entry {
+    min-height: 120px;
     resize: vertical;
+    margin-top: 0;
 }
 
 label {
@@ -192,6 +212,46 @@ label {
 }
 label i { margin-right: 5px; }
 .dark-mode label { color: var(--dm-color-text-secondary); }
+
+
+/* Styles for input type file (will be hidden, label will be styled) */
+input[type="file"] {
+    display: none;
+}
+/* Custom styled label for file input */
+.custom-file-upload {
+    border: 1px solid var(--color-border);
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: var(--border-radius-md);
+    background-color: transparent;
+    color: var(--color-text-secondary);
+    font-size: 0.9em;
+    transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+    margin-right: 10px;
+    height: 36px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+.custom-file-upload:hover {
+    background-color: var(--color-tag-bg);
+    border-color: var(--color-border);
+}
+.dark-mode .custom-file-upload {
+    border-color: var(--dm-color-border);
+    background-color: transparent;
+    color: var(--dm-color-text-secondary);
+}
+.dark-mode .custom-file-upload:hover {
+    background-color: var(--dm-color-tag-bg);
+    border-color: var(--dm-color-border);
+}
+.custom-file-upload i {
+    margin-right: 6px;
+    font-size: 1.1em;
+}
 
 
 /* --- BUTTONS --- */
@@ -228,31 +288,63 @@ button:active {
 }
 
 /* Specific Button Styles */
-#logout-button, .delete-entry-button {
+#logout-button {
     background-color: var(--color-secondary-accent);
     color: var(--lm-color-container-background);
-}
-.dark-mode #logout-button, .dark-mode .delete-entry-button {
-     color: var(--dm-color-text-primary);
-}
-#logout-button:hover, .delete-entry-button:hover {
-    background-color: var(--color-secondary-accent-hover);
-}
-#logout-button {
     width: auto;
-    /* Adjust padding to make height ~36px to match icon-button */
-    /* Assuming 0.9em font-size ~14.4px. (36 - 14.4)/2 = 10.8. Use 11px. */
     padding: 11px 15px;
     font-size: 0.9em;
     margin: 0;
     line-height: normal;
+    align-self: center;
+    flex-shrink: 0;
 }
+.dark-mode #logout-button {
+     color: var(--dm-color-text-primary);
+}
+#logout-button:hover {
+    background-color: var(--color-secondary-accent-hover);
+}
+
+/* Delete Button Style (Icon only, red, NOT round) */
+.delete-entry-button {
+    background-color: var(--color-delete-button-bg);
+    color: var(--color-delete-button-text);
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    font-size: 1.1em;
+    border-radius: var(--border-radius-md); /* Changed back to standard radius */
+    margin: 0;
+    flex-shrink: 0;
+}
+.delete-entry-button:hover {
+    background-color: var(--color-delete-button-bg-hover);
+}
+.delete-entry-button i {
+    margin-right: 0;
+}
+
 
 #cancel-edit-button, .cancel-edit-button {
     background-color: transparent;
     color: var(--color-text-secondary);
     border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    width: auto;
+    padding: 11px 15px;
+    margin-bottom: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: normal;
+    transition: background-color var(--transition-speed) ease-in-out, color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
+
+.dark-mode #cancel-edit-button, .dark-mode .cancel-edit-button {
+    color: var(--dm-color-text-primary);
+    border-color: var(--dm-color-text-secondary);
+}
+
 #cancel-edit-button:hover, .cancel-edit-button:hover {
     background-color: var(--color-tag-bg);
     color: var(--color-text-primary);
@@ -268,16 +360,16 @@ button:active {
     height: 36px;
     padding: 0;
     margin: 0;
-    font-size: 1.1em; /* Icon size */
+    font-size: 1.1em;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+    flex-shrink: 0;
 }
 .dark-mode .icon-button {
     color: var(--dm-color-text-secondary);
 }
-
 .icon-button:hover {
     background-color: var(--color-tag-bg);
     color: var(--color-text-primary);
@@ -287,23 +379,65 @@ button:active {
     background-color: var(--dm-color-border);
     color: var(--dm-color-text-primary);
 }
+.icon-button i { margin-right: 0; vertical-align: middle; }
 
-.icon-button i { margin-right: 0; }
+/* List Mode Button with Text */
+#list-mode-toggle-button {
+    background-color: transparent;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: 8px 12px;
+    font-size: 0.9em;
+    margin: 0;
+    height: 36px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    flex-shrink: 0;
+}
+#list-mode-toggle-button i { margin-right: 6px; }
+#list-mode-toggle-button:hover {
+    background-color: var(--color-tag-bg);
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
+}
+#list-mode-toggle-button.active {
+    background-color: var(--color-primary-accent);
+    color: var(--lm-color-container-background);
+    border-color: var(--color-primary-accent);
+}
+.dark-mode #list-mode-toggle-button {
+    color: var(--dm-color-text-secondary);
+    border-color: var(--dm-color-border);
+}
+.dark-mode #list-mode-toggle-button:hover {
+    background-color: var(--dm-color-tag-bg);
+    color: var(--dm-color-text-primary);
+    border-color: var(--dm-color-border);
+}
+.dark-mode #list-mode-toggle-button.active {
+    background-color: var(--dm-color-primary-accent);
+    color: var(--dm-color-background);
+    border-color: var(--dm-color-primary-accent);
+}
 
 
 #add-tag-button {
     width: auto;
-    padding: 10px 12px; /* Height ~36px with 16px font */
+    padding: 10px 12px;
     font-size: 1rem;
     margin-left: 8px;
     margin-bottom: 0;
     background-color: var(--color-primary-accent);
     line-height: normal;
+    flex-shrink: 0;
 }
 .dark-mode #add-tag-button {
     color: var(--dm-color-background);
 }
-
 #add-tag-button:hover {
     background-color: var(--color-primary-accent-hover);
 }
@@ -320,7 +454,7 @@ button:active {
     gap: 10px;
     transition: border-color var(--transition-speed) ease;
 }
-#user-info p { margin: 0; font-size: 0.95em; flex-grow: 1; }
+#user-info p { margin: 0; font-size: 0.95em; flex-grow: 1; align-self: center; }
 .user-pfp-icon {
     width: 40px;
     height: 40px;
@@ -328,10 +462,15 @@ button:active {
     object-fit: cover;
     flex-shrink: 0;
     margin-right: 10px;
-    border: 1px solid var(--color-border); /* Fallback border */
-    background-color: var(--color-tag-bg); /* Fallback background */
+    border: 1px solid var(--color-border);
+    background-color: var(--color-tag-bg);
+    align-self: center;
 }
 .user-info-right { display: flex; align-items: center; gap: 10px; }
+#dark-mode-toggle {
+    align-self: center;
+}
+
 
 #auth-container p a, #journal-container p a {
     color: var(--color-link);
@@ -348,21 +487,44 @@ button:active {
 
 
 /* --- JOURNAL FORM & TAGS --- */
-.entry-input-container { position: relative; margin-bottom: 15px; }
-.entry-input-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-#list-mode-toggle.active {
-    background-color: var(--color-primary-accent);
-    color: var(--lm-color-container-background);
-    border-color: var(--color-primary-accent);
+/* Container for Content Label and right-side controls (List mode, Image upload) */
+.content-controls-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
 }
-.dark-mode #list-mode-toggle.active {
-    background-color: var(--dm-color-primary-accent);
-    color: var(--dm-color-background);
+.content-controls-header label[for="journal-entry"] {
+    margin-bottom: 0;
+    padding: 0;
+    align-self: center;
+}
+.content-action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
+/* Tag Input Area - assuming HTML reorder for edit button */
 #tag-input-area { margin-bottom: 20px; }
-#tag-input-area .tag-input-container { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
-#tag-input-area .tag-input-container input[type="text"] { flex-grow: 1; margin-bottom: 0; }
+#tag-input-area .tag-input-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+#tag-input-area .tag-input-container input[type="text"]#tag-input {
+    flex-grow: 1;
+    margin-bottom: 0;
+}
+#tag-input-area .tag-input-container #edit-available-tags-button {
+    margin-left: 8px;
+    order: 1;
+}
+#tag-input-area .tag-input-container #add-tag-button {
+    order: 2;
+}
+
 
 #selected-tags, #available-tags, .entry-tags, #filter-tags-list {
     margin-top: 10px;
@@ -384,20 +546,26 @@ button:active {
     cursor: default;
 }
 .available-tags .tag, #filter-tags-list .tag { cursor: pointer; }
-.available-tags .tag:hover, #filter-tags-list .tag:hover:not(.selected) {
+
+/* Style for selected tags in available/filter lists */
+.available-tags .tag.selected,
+#filter-tags-list .tag.selected {
+    background-color: var(--color-tag-selected-bg) !important;
+    color: var(--color-tag-selected-text) !important;
+    font-weight: 600;
+}
+
+.available-tags .tag:hover:not(.selected),
+#filter-tags-list .tag:hover:not(.selected) {
     background-color: var(--color-secondary-accent);
     color: var(--lm-color-container-background);
 }
-.dark-mode .available-tags .tag:hover, .dark-mode #filter-tags-list .tag:hover:not(.selected) {
+.dark-mode .available-tags .tag:hover:not(.selected),
+.dark-mode #filter-tags-list .tag:hover:not(.selected) {
     background-color: var(--dm-color-secondary-accent);
     color: var(--dm-color-text-primary);
 }
 
-#filter-tags-list .tag.selected {
-    background-color: var(--color-tag-selected-bg);
-    color: var(--color-tag-selected-text);
-    font-weight: 600;
-}
 
 .tag .remove-tag {
     margin-left: 8px;
@@ -409,13 +577,15 @@ button:active {
 }
 .tag .remove-tag:hover { opacity: 1; }
 
-#edit-available-tags-button {
-    margin-right: 5px;
-}
 #edit-available-tags-button.editing-active {
     background-color: var(--color-primary-accent);
     color: var(--lm-color-container-background);
 }
+
+#edit-available-tags-button {
+    border-radius: var(--border-radius-md);
+}
+
 .dark-mode #edit-available-tags-button.editing-active {
     background-color: var(--dm-color-primary-accent);
     color: var(--dm-color-background);
@@ -448,14 +618,14 @@ button:active {
     color: var(--color-text-secondary);
     line-height: 1.7;
     transition: color var(--transition-speed) ease;
-}
+    }
 .entry h3 {
     text-align: left;
     margin-bottom: 10px;
-    font-size: 1.4em;
+        font-size: 1.4em;
 }
-.timestamp {
-    font-size: 0.8em;
+    .timestamp {
+        font-size: 0.8em;
     color: var(--color-text-secondary);
     display: block;
     margin-bottom: 12px;
@@ -476,8 +646,13 @@ button:active {
     transition: border-color var(--transition-speed) ease;
 }
 .entry-bottom-row .entry-tags { flex-grow: 1; margin: 0 10px 0 0; }
-.entry-controls { display: flex; gap: 10px; margin:0; }
-.entry-controls button { margin-bottom: 0; padding: 8px 12px; font-size: 0.9em; width: auto; line-height: normal;}
+.entry-controls { display: flex; align-items: center; gap: 10px; margin:0; }
+.entry-controls button { margin-bottom: 0; line-height: normal;}
+.entry-controls .edit-entry-button {
+    padding: 8px 12px;
+    font-size: 0.9em;
+    width: auto;
+}
 
 
 /* --- AI INSIGHTS --- */
@@ -524,8 +699,10 @@ button:active {
 .dark-mode .ai-toggle-button {
     color: var(--dm-color-text-secondary);
 }
-
-.ai-toggle-button:hover { color: var(--color-primary-accent); }
+.entry.expanded .ai-toggle-button,
+.ai-toggle-button:hover {
+    color: var(--color-primary-accent);
+}
 
 .ai-toggle-button i { margin-right: 6px; font-size: 1em; }
 .ai-icon-sparkles { margin-left: 5px; color: var(--color-primary-accent); }
@@ -550,13 +727,6 @@ button:active {
 #search-filter-area #search-input { margin-bottom: 15px; }
 
 
-/* --- DARK MODE TOGGLE --- */
-#dark-mode-toggle {
-    border: none;
-    visibility: visible !important;
-}
-
-
 /* --- LIST ITEMS (TODO style) --- */
 .entry-list-items { list-style: none; padding: 0; margin: 0 0 15px 0; }
 .list-item { display: flex; align-items: center; margin-bottom: 10px; color: var(--color-text-secondary); }
@@ -572,27 +742,14 @@ button:active {
 
 /* --- ENTRY IMAGES --- */
 .entry-image {
-    max-width: 100%; /* Ensure image is not wider than its container */
-    height: auto; /* Maintain aspect ratio */
-    display: block; /* Make it a block element */
-    margin: 0 auto 15px auto; /* Center the image and add space below */
-    border-radius: var(--border-radius-md); /* Match container border-radius */
-    box-shadow: 0 2px 8px var(--color-shadow); /* Add a subtle shadow */
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 15px auto;
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 2px 8px var(--color-shadow);
     transition: opacity var(--transition-speed) ease;
 }
-
-/* Ensure images inside .entry are styled correctly */
-.entry .entry-image {
-    margin-top: 15px; /* Add space above if it's the first element */
-    margin-bottom: 15px; /* Ensure space below */
-}
-
-/* Adjust spacing if image is between title and content/list */
-.entry .entry-image + .entry-content,
-.entry .entry-image + .entry-list-items {
-     margin-top: 15px; /* Add space above the content/list if preceded by an image */
-}
-
 
 /* --- EDIT MODE --- */
 #journal-form.edit-mode textarea {
@@ -610,29 +767,42 @@ button:active {
 
 /* --- RESPONSIVE --- */
 @media (max-width: 600px) {
-    body { padding: 20px 10px; } /* Adjusted body padding */
+    body { padding: 20px 10px; }
     #app { padding: 20px; border-radius: var(--border-radius-md); }
     h1 { font-size: 1.8em; }
     h2 { font-size: 1.4em; }
     h3 { font-size: 1.15em; }
     input[type="email"], input[type="password"], input[type="text"], textarea { padding: 10px 12px; font-size: 0.95rem; }
-    #tag-input-area input[type="text"] {
-        padding-top: 8px; /* Adjust for smaller font */
+    #tag-input-area input[type="text"]#tag-input {
+        padding-top: 8px;
         padding-bottom: 8px;
     }
     button { padding: 10px 15px; font-size: 0.95rem; }
     #logout-button {
-        padding: 9px 12px; /* Adjusted padding for smaller font size */
+        padding: 9px 12px;
         font-size: 0.85em;
     }
+    .custom-file-upload, #list-mode-toggle-button {
+        padding: 7px 10px;
+        font-size: 0.85em;
+        height: 32px;
+    }
+    .custom-file-upload i { font-size: 1em; }
+
     .entry { padding: 15px; }
-    .entry-controls button { padding: 6px 10px; font-size: 0.85em; width: auto; }
+    .entry-controls button { width: auto; }
+    .entry-controls .edit-entry-button { padding: 6px 10px; font-size: 0.85em; }
+    .delete-entry-button { width: 32px; height: 32px; font-size: 1em; }
+
+
     #user-info { flex-direction: column; align-items: flex-start; }
     .user-info-right { margin-top: 10px; width: 100%; justify-content: flex-end; }
     #search-filter-area { padding: 15px; }
     .icon-button { width: 32px; height: 32px; font-size: 1em; }
     #add-tag-button {
-        padding: 8px 10px; /* Adjust for smaller font */
+        padding: 8px 10px;
         font-size: 0.95rem;
     }
+    .content-controls-header { flex-direction: column; align-items: flex-start; gap: 8px;}
+    .content-action-buttons { width: 100%; justify-content: flex-end; }
 }
