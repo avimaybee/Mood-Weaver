@@ -2,16 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Milkdown Nord theme styles */
+@import '@milkdown/theme-nord/style.css';
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Inter', sans-serif; /* Use Inter as defined in tailwind.config.js */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  @apply bg-background text-textPrimary; /* Apply global background and text color */
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Custom styles for Milkdown editor to integrate with Tailwind */
+/* These might need further refinement based on how Milkdown renders its elements */
+.milkdown .editor {
+  /* Apply text color from theme */
+  @apply text-textPrimary;
+}
+
+.milkdown .editor .ProseMirror {
+  /* Basic styling for the editor area */
+  min-height: 150px; /* Example min-height */
+  padding: 1rem;
+  outline: none; /* Remove default focus outline */
+}
+
+/* Style placeholders if Milkdown supports them */
+.milkdown .editor .ProseMirror-placeholder { /* Corrected placeholder class */
+  @apply text-textSecondary italic; /* Apply muted text and italic */
+}
+
+
+.milkdown .editor .ProseMirror-menu,
+.milkdown .editor .ProseMirror-prompt {
+  @apply bg-surface border-b border-border;
+}
+
+.milkdown .editor .ProseMirror *:focus {
+    outline: none; /* Ensure inner elements don't have default outline */
 }

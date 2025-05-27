@@ -24,8 +24,13 @@ interface AddEntryData {
   imageUrl?: string | null;
 }
 
+// Define props interface for AddEntryForm
+interface AddEntryFormProps {
+  displayStatusMessage: (message: string, type: 'success' | 'error') => void;
+}
+
 // --- AddEntryForm Component ---
-const AddEntryForm: React.FC = () => {
+const AddEntryForm: React.FC<AddEntryFormProps> = ({ displayStatusMessage }) => { // Destructure displayStatusMessage prop
   const { addEntry } = useJournalEntries();
   // Removed unused currentUser from useAuth()
 
@@ -75,7 +80,7 @@ const AddEntryForm: React.FC = () => {
     e.preventDefault();
 
     if (!title.trim()) {
-      alert('Please enter a title for your journal entry.');
+      displayStatusMessage('Please enter a title for your journal entry.', 'error'); // Use displayStatusMessage
       return;
     }
 
@@ -96,10 +101,10 @@ const AddEntryForm: React.FC = () => {
       setMarkdownText('');
       setNewTags([]);
       setTagInput('');
-      alert('Journal entry added successfully!');
+      displayStatusMessage('Journal entry added successfully!', 'success'); // Use displayStatusMessage
     } catch (error) {
       console.error('Error adding journal entry:', error);
-      alert('Failed to add journal entry.');
+      displayStatusMessage('Failed to add journal entry. Please try again.', 'error'); // Use displayStatusMessage
     }
   };
 
